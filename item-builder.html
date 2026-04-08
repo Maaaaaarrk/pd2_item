@@ -46,6 +46,9 @@
   .mod-line { margin: 1px 0; }
   .mod-range { color: #888; font-size: 0.8rem; }
   .item-preview .base-name { color: #ffff44; font-size: 0.95rem; margin-bottom: 10px; }
+  .eth-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; color: #a0a0b0; }
+  .eth-toggle input { cursor: pointer; }
+  .item-preview .ethereal-tag { color: #888; font-size: 0.85rem; font-style: italic; margin-bottom: 4px; }
   .reroll-btn { cursor: pointer; font-size: 1rem; color: #888; margin-left: 6px; vertical-align: middle; }
   .reroll-btn:hover { color: #ffff44; }
   .odds-section { margin-top: 12px; text-align: left; display: inline-block; width: 100%; }
@@ -79,6 +82,10 @@
       <option value="">-- Select --</option>
       <option value="armor">Armor</option>
       <option value="weapon">Weapon</option>
+      <option value="ring">Ring</option>
+      <option value="amulet">Amulet</option>
+      <option value="jewel">Jewel</option>
+      <option value="charm">Charm</option>
     </select>
 
     <label for="tier">Tier</label>
@@ -100,6 +107,10 @@
     <div class="quality-btns">
       <button id="btn-magic" disabled onclick="setQuality('magic')">Magic</button>
       <button id="btn-rare" disabled onclick="setQuality('rare')">Rare</button>
+    </div>
+
+    <div id="ethereal-area" style="display:none; margin-top: 10px;">
+      <label class="eth-toggle"><input type="checkbox" id="eth-check" onchange="toggleEthereal()"> Ethereal (+25% base stats, 1 in 20)</label>
     </div>
 
     <div id="affix-area" style="display:none;">
@@ -134,7 +145,18 @@ let typeMap = {};
 for (const t of itemTypes) { if (t.Code) typeMap[t.Code] = t; }
 let rarePrefixes = RARE_PREFIX_DATA.filter(a => a.name);
 let rareSuffixes = RARE_SUFFIX_DATA.filter(a => a.name);
-let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', selectedPrefixes: [], selectedSuffixes: [], rareName: '' };
+
+// Misc items that aren't in Armor/Weapons data
+const miscItems = [
+  { name: 'Ring', code: 'rin', type: 'ring', level: '1', levelreq: '0', category: 'ring' },
+  { name: 'Amulet', code: 'amu', type: 'amul', level: '1', levelreq: '0', category: 'amulet' },
+  { name: 'Jewel', code: 'jew', type: 'jewl', level: '1', levelreq: '0', category: 'jewel' },
+  { name: 'Small Charm', code: 'cm1', type: 'scha', level: '1', levelreq: '0', category: 'charm' },
+  { name: 'Medium Charm', code: 'cm2', type: 'mcha', level: '1', levelreq: '0', category: 'charm' },
+  { name: 'Large Charm', code: 'cm3', type: 'lcha', level: '1', levelreq: '0', category: 'charm' },
+];
+
+let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, selectedPrefixes: [], selectedSuffixes: [], rareName: '' };
 
 // --- Tier detection: Normal / Exceptional / Elite ---
 function getItemTier(item) {
@@ -258,6 +280,9 @@ function resetFrom(level) {
     baseSel.disabled = true;
   }
   state.quality = '';
+  state.ethereal = false;
+  document.getElementById('eth-check').checked = false;
+  document.getElementById('ethereal-area').style.display = 'none';
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
   btnMagic.disabled = true;
@@ -269,8 +294,17 @@ function resetFrom(level) {
 }
 
 // --- Get all items for the current category ---
+// Categories that skip tier/class selection and go straight to item pick
+const simpleCats = ['ring', 'amulet', 'jewel', 'charm'];
+
+function isSimpleCategory(cat) {
+  return simpleCats.includes(cat);
+}
+
 function getCategoryItems() {
-  return state.category === 'armor' ? armorData : weaponData;
+  if (state.category === 'armor') return armorData;
+  if (state.category === 'weapon') return weaponData;
+  return miscItems.filter(i => i.category === state.category);
 }
 
 // --- UI handlers ---
@@ -278,6 +312,27 @@ document.getElementById('category').addEventListener('change', function() {
   state.category = this.value;
   resetFrom('tier');
   if (!state.category) return;
+
+  if (isSimpleCategory(state.category)) {
+    // Skip tier/class, go straight to base selection
+    const baseSel = document.getElementById('base');
+    baseSel.disabled = false;
+    baseSel.innerHTML = '<option value="">-- Select item --</option>';
+
+    const items = getCategoryItems();
+    items.forEach((item, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = item.name;
+      baseSel.appendChild(opt);
+    });
+    // Auto-select if only one item
+    if (items.length === 1) {
+      baseSel.value = 0;
+      baseSel.dispatchEvent(new Event('change'));
+    }
+    return;
+  }
 
   const tierSel = document.getElementById('tier');
   tierSel.disabled = false;
@@ -360,16 +415,26 @@ document.getElementById('item-class').addEventListener('change', function() {
 document.getElementById('base').addEventListener('change', function() {
   state.baseIndex = parseInt(this.value);
   state.quality = '';
+  state.ethereal = false;
+  document.getElementById('eth-check').checked = false;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
   const valid = !isNaN(state.baseIndex) && state.baseIndex >= 0;
+  const charmOnly = state.category === 'charm';
+  const canEth = valid && (state.category === 'armor' || state.category === 'weapon');
   document.getElementById('btn-magic').disabled = !valid;
-  document.getElementById('btn-rare').disabled = !valid;
+  document.getElementById('btn-rare').disabled = !valid || charmOnly;
   document.getElementById('btn-magic').className = '';
   document.getElementById('btn-rare').className = '';
+  document.getElementById('ethereal-area').style.display = canEth ? 'block' : 'none';
   document.getElementById('affix-area').style.display = 'none';
   renderPreview();
 });
+
+function toggleEthereal() {
+  state.ethereal = document.getElementById('eth-check').checked;
+  renderPreview();
+}
 
 function setQuality(q) {
   state.quality = q;
@@ -397,15 +462,21 @@ function rerollRareName() {
 }
 
 function buildAffixSlots() {
+  const isJewelRare = state.quality === 'rare' && state.category === 'jewel';
   const maxPre = state.quality === 'rare' ? 3 : 1;
   const maxSuf = state.quality === 'rare' ? 3 : 1;
   const area = document.getElementById('affix-area');
   area.style.display = 'block';
 
-  document.getElementById('prefix-header').textContent = 'Prefixes (up to ' + maxPre + ')';
-  document.getElementById('suffix-header').textContent = 'Suffixes (up to ' + maxSuf + ')';
+  if (isJewelRare) {
+    document.getElementById('prefix-header').textContent = 'Prefixes (4 affixes total)';
+    document.getElementById('suffix-header').textContent = 'Suffixes (4 affixes total)';
+  } else {
+    document.getElementById('prefix-header').textContent = 'Prefixes (up to ' + maxPre + ')';
+    document.getElementById('suffix-header').textContent = 'Suffixes (up to ' + maxSuf + ')';
+  }
 
-  const items = state.category === 'armor' ? armorData : weaponData;
+  const items = getCategoryItems();
   const item = items[state.baseIndex];
 
   const validPrefixes = getValidAffixes(prefixes, item, state.quality);
@@ -449,6 +520,32 @@ function refreshAffixSlots(type) {
   for (let i = 0; i < maxSlots; i++) {
     const sel = document.getElementById(type + '-' + i);
     if (sel && sel._populate) sel._populate();
+  }
+}
+
+// --- Rare jewel: 4 total affixes max (1P + 1S guaranteed, 2 wild) ---
+function getJewelAffixCount() {
+  const preCount = state.selectedPrefixes.filter(i => i >= 0).length;
+  const sufCount = state.selectedSuffixes.filter(i => i >= 0).length;
+  return preCount + sufCount;
+}
+
+function enforceJewelCap() {
+  const isJewelRare = state.quality === 'rare' && state.category === 'jewel';
+  const atCap = isJewelRare && getJewelAffixCount() >= 4;
+
+  // Disable/enable empty slots across both prefix and suffix
+  for (const type of ['prefix', 'suffix']) {
+    const arr = type === 'prefix' ? state.selectedPrefixes : state.selectedSuffixes;
+    for (let i = 0; i < arr.length; i++) {
+      const sel = document.getElementById(type + '-' + i);
+      if (!sel) continue;
+      const isEmpty = arr[i] < 0;
+      sel.disabled = atCap && isEmpty;
+      // Also disable the filter input
+      const filterInput = sel.parentElement.querySelector('input');
+      if (filterInput) filterInput.disabled = atCap && isEmpty;
+    }
   }
 }
 
@@ -499,7 +596,9 @@ function createAffixSelect(type, slotIndex, affixPool) {
   sel.addEventListener('change', function() {
     const arr = type === 'prefix' ? state.selectedPrefixes : state.selectedSuffixes;
     arr[slotIndex] = parseInt(this.value);
-    refreshAffixSlots(type);
+    refreshAffixSlots('prefix');
+    refreshAffixSlots('suffix');
+    enforceJewelCap();
     renderPreview();
   });
 
@@ -524,7 +623,7 @@ function affixDescription(affix) {
 // --- Preview rendering ---
 function renderPreview() {
   const preview = document.getElementById('preview');
-  const items = state.category === 'armor' ? armorData : weaponData;
+  const items = getCategoryItems();
 
   if (state.baseIndex < 0 || !state.category) {
     preview.innerHTML = '<div class="no-item">Select an item base and quality to begin</div>';
@@ -552,17 +651,34 @@ function renderPreview() {
     .map(i => validSuffixes[i])
     .filter(Boolean);
 
+  // Collect all affix mods for stat calculation
+  const allAffixes = [...selPre, ...selSuf];
+  let totalED = 0, flatMinDmg = 0, flatMaxDmg = 0;
+  let totalAC = 0, flatAC = 0;
+  for (const a of allAffixes) {
+    for (let i = 1; i <= 3; i++) {
+      const code = a['mod' + i + 'code'];
+      const min = parseInt(a['mod' + i + 'min']) || 0;
+      const max = parseInt(a['mod' + i + 'max']) || 0;
+      if (code === 'dmg%') totalED += max;
+      if (code === 'dmg-min') flatMinDmg += max;
+      if (code === 'dmg-max') flatMaxDmg += max;
+      if (code === 'ac%') totalAC += max;
+      if (code === 'ac') flatAC += max;
+    }
+  }
+
+  const ethMult = state.ethereal ? 1.25 : 1;
+
   // Build item name
   const nameClass = state.quality === 'magic' ? 'magic' : 'rare';
   let html = '';
 
   if (state.quality === 'rare') {
-    // Rare: random name from RarePrefix + RareSuffix, base name shown below
     html += '<div class="item-name ' + nameClass + '">' + esc(state.rareName) +
       ' <span class="reroll-btn" onclick="rerollRareName()" title="Reroll rare name">&#x21bb;</span></div>';
     html += '<div class="base-name">' + esc(item.name) + '</div>';
   } else {
-    // Magic: prefix + base + suffix
     let itemName = '';
     if (selPre.length > 0) itemName += selPre[0].Name + ' ';
     itemName += item.name;
@@ -570,14 +686,36 @@ function renderPreview() {
     html += '<div class="item-name ' + nameClass + '">' + esc(itemName) + '</div>';
   }
 
-  // Base stats
+  if (state.ethereal) {
+    html += '<div class="ethereal-tag">Ethereal (Cannot Be Repaired)</div>';
+  }
+
+  // Base stats with affix calculations
   html += '<div class="base-stats">';
   if (state.category === 'armor') {
-    html += '<div>Defense: ' + item.minac + '-' + item.maxac + '</div>';
-  } else {
-    html += '<div>One-Hand Damage: ' + item.mindam + '-' + item.maxdam + '</div>';
-    if (item['2handed'] === '1' || item['1or2handed'] === '1') {
-      html += '<div>Two-Hand Damage: ' + item['2handmindam'] + '-' + item['2handmaxdam'] + '</div>';
+    const baseMin = Math.floor((parseInt(item.minac) || 0) * ethMult);
+    const baseMax = Math.floor((parseInt(item.maxac) || 0) * ethMult);
+    const effMin = Math.floor(baseMin * (1 + totalAC / 100)) + flatAC;
+    const effMax = Math.floor(baseMax * (1 + totalAC / 100)) + flatAC;
+    html += '<div>Defense: ' + effMin + '-' + effMax + '</div>';
+  } else if (state.category === 'weapon') {
+    const raw1hMin = parseInt(item.mindam) || 0;
+    const raw1hMax = parseInt(item.maxdam) || 0;
+    if (raw1hMin > 0 || raw1hMax > 0) {
+      const base1hMin = Math.floor(raw1hMin * ethMult);
+      const base1hMax = Math.floor(raw1hMax * ethMult);
+      const eff1hMin = Math.floor(base1hMin * (1 + totalED / 100)) + flatMinDmg;
+      const eff1hMax = Math.floor(base1hMax * (1 + totalED / 100)) + flatMaxDmg;
+      html += '<div>One-Hand Damage: ' + eff1hMin + '-' + eff1hMax + '</div>';
+    }
+    const raw2hMin = parseInt(item['2handmindam']) || 0;
+    const raw2hMax = parseInt(item['2handmaxdam']) || 0;
+    if (raw2hMin > 0 || raw2hMax > 0) {
+      const base2hMin = Math.floor(raw2hMin * ethMult);
+      const base2hMax = Math.floor(raw2hMax * ethMult);
+      const eff2hMin = Math.floor(base2hMin * (1 + totalED / 100)) + flatMinDmg;
+      const eff2hMax = Math.floor(base2hMax * (1 + totalED / 100)) + flatMaxDmg;
+      html += '<div>Two-Hand Damage: ' + eff2hMin + '-' + eff2hMax + '</div>';
     }
   }
   if (item.durability && item.nodurability !== '1') {
@@ -632,6 +770,7 @@ function renderPreview() {
     // Rare: 3 prefix slots, 3 suffix slots, all always roll
     // Magic: 1 prefix slot, 1 suffix slot, both always roll
     // Selected affixes can land in any slot (order doesn't matter)
+    const isJewelRare = state.quality === 'rare' && state.category === 'jewel';
     const preSlots = state.quality === 'rare' ? 3 : 1;
     const sufSlots = state.quality === 'rare' ? 3 : 1;
 
@@ -670,20 +809,51 @@ function renderPreview() {
     }
 
     let combinedProb = 1;
-    if (preProbs.length > 0) {
-      let p = permutations(preSlots, preProbs.length);
-      for (const prob of preProbs) p *= prob;
-      combinedProb *= p;
+    if (isJewelRare) {
+      // Rare jewel: 1 guaranteed prefix slot, 1 guaranteed suffix slot,
+      // 2 wild slots that each independently pick prefix OR suffix pool.
+      // For Np selected prefixes and Ns selected suffixes (Np+Ns <= 4):
+      //   - 1 prefix must land in the guaranteed prefix slot
+      //   - 1 suffix must land in the guaranteed suffix slot
+      //   - remaining (Np-1) prefixes and (Ns-1) suffixes must land in
+      //     the 2 wild slots, which can go either way
+      const Np = preProbs.length;
+      const Ns = sufProbs.length;
+      // Product of all individual probabilities
+      let prodPre = 1;
+      for (const p of preProbs) prodPre *= p;
+      let prodSuf = 1;
+      for (const p of sufProbs) prodSuf *= p;
+      // Guaranteed slots: any of the Np prefixes can fill it, any of Ns suffixes
+      // Wild slots: the remaining affixes fill the 2 wild slots in any order
+      const wildCount = (Np - 1) + (Ns - 1); // affixes that need wild slots
+      const wildArrangements = wildCount <= 0 ? 1 : permutations(2, wildCount);
+      combinedProb = prodPre * prodSuf * Np * Ns * wildArrangements;
+    } else {
+      if (preProbs.length > 0) {
+        let p = permutations(preSlots, preProbs.length);
+        for (const prob of preProbs) p *= prob;
+        combinedProb *= p;
+      }
+      if (sufProbs.length > 0) {
+        let p = permutations(sufSlots, sufProbs.length);
+        for (const prob of sufProbs) p *= prob;
+        combinedProb *= p;
+      }
     }
-    if (sufProbs.length > 0) {
-      let p = permutations(sufSlots, sufProbs.length);
-      for (const prob of sufProbs) p *= prob;
-      combinedProb *= p;
+
+    // Ethereal odds
+    if (state.ethereal) {
+      combinedProb *= (1 / 20);
+      html += '<div class="odds-row">';
+      html += '<span class="odds-label">Ethereal</span>';
+      html += '<span class="odds-pct">1 in 20</span>';
+      html += '</div>';
     }
 
     // Combined odds
     html += '<div class="odds-combined">';
-    html += '<div class="label">Combined chance for this exact roll</div>';
+    html += '<div class="label">Combined chance for these affixes</div>';
     const combinedRatio = combinedProb > 0 ? Math.round(1 / combinedProb) : 0;
     html += '<div class="value">' + oddsText(combinedRatio) + '</div>';
     html += '</div>';
@@ -977,6 +1147,7 @@ function stateToHash() {
   const items = getCategoryItems();
   const item = items[state.baseIndex];
   const parts = ['b=' + item.code, 'q=' + state.quality[0]];
+  if (state.ethereal) parts.push('e=1');
 
   // Map selected valid-pool indices to global prefix/suffix indices
   const validPre = state._validPrefixes || [];
@@ -1020,33 +1191,48 @@ function loadFromHash() {
   const code = params.b;
   const quality = params.q === 'r' ? 'rare' : 'magic';
 
-  // Find the item by code in both arrays
+  // Find the item by code in all data sources
   let category = '';
-  let baseIndex = armorData.findIndex(i => i.code === code);
-  if (baseIndex >= 0) {
-    category = 'armor';
-  } else {
+  let baseIndex = -1;
+
+  baseIndex = armorData.findIndex(i => i.code === code);
+  if (baseIndex >= 0) { category = 'armor'; }
+
+  if (!category) {
     baseIndex = weaponData.findIndex(i => i.code === code);
     if (baseIndex >= 0) category = 'weapon';
   }
-  if (!category) return;
 
-  const items = category === 'armor' ? armorData : weaponData;
-  const item = items[baseIndex];
-  const tier = getItemTier(item);
+  if (!category) {
+    // Check misc items
+    const miscItem = miscItems.find(i => i.code === code);
+    if (miscItem) {
+      category = miscItem.category;
+      const catItems = miscItems.filter(i => i.category === category);
+      baseIndex = catItems.findIndex(i => i.code === code);
+    }
+  }
+
+  if (!category || baseIndex < 0) return;
 
   // Set category
   state.category = category;
   document.getElementById('category').value = category;
-
-  // Populate and set tier
   document.getElementById('category').dispatchEvent(new Event('change'));
-  document.getElementById('tier').value = tier;
-  document.getElementById('tier').dispatchEvent(new Event('change'));
 
-  // Set item class
-  document.getElementById('item-class').value = item.type;
-  document.getElementById('item-class').dispatchEvent(new Event('change'));
+  if (!isSimpleCategory(category)) {
+    const items = getCategoryItems();
+    const item = items[baseIndex];
+    const tier = getItemTier(item);
+
+    // Set tier
+    document.getElementById('tier').value = tier;
+    document.getElementById('tier').dispatchEvent(new Event('change'));
+
+    // Set item class
+    document.getElementById('item-class').value = item.type;
+    document.getElementById('item-class').dispatchEvent(new Event('change'));
+  }
 
   // Set base
   document.getElementById('base').value = baseIndex;
@@ -1054,6 +1240,8 @@ function loadFromHash() {
 
   // Set quality (without re-rolling rare name yet)
   state.quality = quality;
+  state.ethereal = params.e === '1';
+  document.getElementById('eth-check').checked = state.ethereal;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
   document.getElementById('btn-magic').className = quality === 'magic' ? 'active-magic' : '';
