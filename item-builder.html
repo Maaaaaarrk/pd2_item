@@ -907,10 +907,15 @@ function renderPreview() {
   // Requirements
   html += '<div class="separator"></div>';
   html += '<div class="req">';
-  if (item.levelreq && item.levelreq !== '0') html += '<div>Required Level: ' + item.levelreq + '</div>';
+  // Compute required level: max of base item levelreq and all affix levelreqs
+  let reqLvl = parseInt(item.levelreq) || 0;
+  for (const a of allAffixes) {
+    const aReq = parseInt(a.levelreq) || 0;
+    if (aReq > reqLvl) reqLvl = aReq;
+  }
+  if (reqLvl > 0) html += '<div>Required Level: ' + reqLvl + '</div>';
   if (item.reqstr && item.reqstr !== '0') html += '<div>Required Strength: ' + item.reqstr + '</div>';
   if (item.reqdex && item.reqdex !== '0') html += '<div>Required Dexterity: ' + item.reqdex + '</div>';
-  html += '<div>Item Level: ' + item.level + '</div>';
   html += '</div>';
 
   // Odds section
