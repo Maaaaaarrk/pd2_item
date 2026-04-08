@@ -727,7 +727,8 @@ function createAffixSelect(type, slotIndex, affixPool) {
       if (a.group && usedGroups.has(a.group)) return;
       // Build a description of what the affix does
       const desc = affixDescription(a);
-      const label = a.Name + (desc ? ' — ' + desc : '') + ' (lvl ' + a.level + ')';
+      const lvlReq = parseInt(a.levelreq) || 0;
+      const label = a.Name + (desc ? ' — ' + desc : '') + ' (lvl ' + a.level + (lvlReq > 0 ? ', req ' + lvlReq : '') + ')';
       if (ft && !label.toLowerCase().includes(ft)) return;
       const opt = document.createElement('option');
       opt.value = idx;
