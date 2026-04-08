@@ -74,6 +74,24 @@
   .lld-section .lld-ineligible { color: #cc4444; font-size: 0.9rem; }
   .lld-section .lld-odds { color: #a0a0b0; font-size: 0.8rem; margin-top: 4px; }
   .lld-section .lld-odds .lld-value { color: #44cc44; font-family: 'Exocet', serif; font-size: 1rem; }
+
+  /* Fuzzy Affixes mode styles */
+  .mode-toggle { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 0.85rem; color: #a0a0b0; }
+  .mode-toggle label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; margin: 0; }
+  .mode-toggle input[type="radio"] { appearance: none; width: 14px; height: 14px; border: 1px solid #1a4080; border-radius: 50%; background: #0f3460; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
+  .mode-toggle input[type="radio"]:checked { background: #c4a84f; border-color: #c4a84f; }
+  .fuzzy-controls { margin-top: 10px; }
+  .fuzzy-controls label { font-size: 0.85rem; color: #a0a0b0; margin-bottom: 4px; }
+  .fuzzy-controls select { width: auto; min-width: 60px; }
+  .add-affix-btn { margin-top: 8px; padding: 6px 14px; background: #0f3460; border: 1px solid #1a4080; color: #c4a84f; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+  .add-affix-btn:hover { border-color: #c4a84f; }
+  .remove-affix-btn { position: absolute; right: 4px; top: 4px; background: none; border: none; color: #cc4444; cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 6px; }
+  .remove-affix-btn:hover { color: #ff4444; }
+  .fuzzy-results { margin-top: 12px; text-align: center; }
+  .fuzzy-results .fuzzy-header { color: #c4a84f; font-size: 0.95rem; font-family: 'Exocet', serif; margin-bottom: 8px; }
+  .fuzzy-results .fuzzy-stat { color: #a0a0b0; font-size: 0.85rem; margin: 4px 0; }
+  .fuzzy-results .fuzzy-stat .val { color: #e0e0e0; }
+  .fuzzy-results .fuzzy-pct { color: #c4a84f; font-size: 1.2rem; font-family: 'Exocet', serif; margin-top: 8px; }
 </style>
 <script src="data/js/Armor.js"></script>
 <script src="data/js/Weapons.js"></script>
@@ -132,6 +150,26 @@
       <label class="eth-toggle"><input type="checkbox" id="eth-check" onchange="toggleEthereal()"> Ethereal (+25% base stats, 1 in 20)</label>
     </div>
 
+    <div id="mode-area" style="display:none; margin-top: 10px;">
+      <div class="mode-toggle">
+        <span>Mode:</span>
+        <label><input type="radio" name="affix-mode" value="exact" checked onchange="setAffixMode('exact')"> Exact Affixes</label>
+        <label><input type="radio" name="affix-mode" value="fuzzy" onchange="setAffixMode('fuzzy')"> Fuzzy Affixes</label>
+      </div>
+    </div>
+
+    <div id="fuzzy-controls" style="display:none; margin-top: 10px;">
+      <label for="fuzzy-min">Minimum # of affixes to match</label>
+      <select id="fuzzy-min" onchange="onFuzzyMinChange()">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+      </select>
+    </div>
+
     <div id="ilvl-area" style="display:none; margin-top: 10px;">
       <label for="ilvl-input">Item Level (ilvl) <span id="alvl-display" style="color:#888; font-size:0.8rem;"></span></label>
       <div style="display:flex; gap:6px; align-items:center;">
@@ -148,6 +186,14 @@
       <div class="affix-section">
         <h3 id="suffix-header">Suffixes</h3>
         <div id="suffix-slots"></div>
+      </div>
+    </div>
+
+    <div id="fuzzy-affix-area" style="display:none;">
+      <div class="affix-section">
+        <h3>Desired Affixes (prefix or suffix)</h3>
+        <div id="fuzzy-affix-slots"></div>
+        <button class="add-affix-btn" onclick="addFuzzyAffixSlot()">+ Add Another Affix</button>
       </div>
     </div>
   </div>
@@ -183,7 +229,7 @@ const miscItems = [
   { name: 'Grand Charm', code: 'cm3', type: 'lcha', level: '1', levelreq: '0', category: 'charm' },
 ];
 
-let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, ilvl: 99, selectedPrefixes: [], selectedSuffixes: [], rareName: '' };
+let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, ilvl: 99, selectedPrefixes: [], selectedSuffixes: [], rareName: '', affixMode: 'exact', fuzzyMin: 1, fuzzyAffixes: [] };
 
 // --- Tier detection: Normal / Exceptional / Elite ---
 function getItemTier(item) {
@@ -346,6 +392,13 @@ function resetFrom(level) {
   document.getElementById('ilvl-input').value = 99;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
+  state.fuzzyAffixes = [];
+  state.affixMode = 'exact';
+  var modeRadio = document.querySelector('input[name="affix-mode"][value="exact"]');
+  if (modeRadio) modeRadio.checked = true;
+  document.getElementById('mode-area').style.display = 'none';
+  document.getElementById('fuzzy-controls').style.display = 'none';
+  document.getElementById('fuzzy-affix-area').style.display = 'none';
   btnMagic.disabled = true;
   btnRare.disabled = true;
   btnMagic.className = '';
@@ -501,10 +554,12 @@ function setQuality(q) {
   state.quality = q;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
+  state.fuzzyAffixes = [];
   document.getElementById('btn-magic').className = q === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = q === 'rare' ? 'active-rare' : '';
-  // Show ilvl input
+  // Show ilvl input and mode toggle
   document.getElementById('ilvl-area').style.display = 'block';
+  document.getElementById('mode-area').style.display = 'block';
   updateAlvlDisplay();
   // Roll a random rare name when switching to rare
   if (q === 'rare') {
@@ -514,7 +569,13 @@ function setQuality(q) {
   } else {
     state.rareName = '';
   }
-  buildAffixSlots();
+  if (state.affixMode === 'fuzzy') {
+    document.getElementById('affix-area').style.display = 'none';
+    buildFuzzyAffixSlots();
+  } else {
+    document.getElementById('fuzzy-affix-area').style.display = 'none';
+    buildAffixSlots();
+  }
   renderPreview();
 }
 
@@ -621,6 +682,342 @@ function rerollRareName() {
   const item = items[state.baseIndex];
   state.rareName = rollRareName(item);
   renderPreview();
+}
+
+
+function setAffixMode(mode) {
+  state.affixMode = mode;
+  document.querySelector('input[name="affix-mode"][value="' + mode + '"]').checked = true;
+  if (mode === 'fuzzy') {
+    document.getElementById('fuzzy-controls').style.display = 'block';
+    document.getElementById('affix-area').style.display = 'none';
+    document.getElementById('fuzzy-affix-area').style.display = state.quality ? 'block' : 'none';
+    if (state.quality) buildFuzzyAffixSlots();
+  } else {
+    document.getElementById('fuzzy-controls').style.display = 'none';
+    document.getElementById('fuzzy-affix-area').style.display = 'none';
+    if (state.quality) {
+      document.getElementById('affix-area').style.display = 'block';
+      buildAffixSlots();
+    }
+  }
+  renderPreview();
+}
+
+function onFuzzyMinChange() {
+  state.fuzzyMin = parseInt(document.getElementById('fuzzy-min').value) || 1;
+  renderPreview();
+}
+
+function buildFuzzyAffixSlots() {
+  var items = getCategoryItems();
+  var item = items[state.baseIndex];
+  var validPrefixes = getValidAffixes(prefixes, item, state.quality);
+  var validSuffixes = getValidAffixes(suffixes, item, state.quality);
+  state._validPrefixes = validPrefixes;
+  state._validSuffixes = validSuffixes;
+  state._fuzzyPool = validPrefixes.map(function(a) {
+    var copy = {};
+    for (var k in a) copy[k] = a[k];
+    copy._poolType = 'prefix';
+    return copy;
+  }).concat(validSuffixes.map(function(a) {
+    var copy = {};
+    for (var k in a) copy[k] = a[k];
+    copy._poolType = 'suffix';
+    return copy;
+  }));
+
+  var container = document.getElementById('fuzzy-affix-slots');
+  container.innerHTML = '';
+  if (state.fuzzyAffixes.length === 0) {
+    state.fuzzyAffixes.push(-1);
+  }
+  for (var i = 0; i < state.fuzzyAffixes.length; i++) {
+    container.appendChild(createFuzzyAffixSelect(i));
+  }
+  document.getElementById('fuzzy-affix-area').style.display = 'block';
+}
+
+function addFuzzyAffixSlot() {
+  state.fuzzyAffixes.push(-1);
+  var container = document.getElementById('fuzzy-affix-slots');
+  container.appendChild(createFuzzyAffixSelect(state.fuzzyAffixes.length - 1));
+}
+
+function removeFuzzyAffixSlot(index) {
+  state.fuzzyAffixes.splice(index, 1);
+  buildFuzzyAffixSlots();
+  renderPreview();
+}
+
+function createFuzzyAffixSelect(slotIndex) {
+  var pool = state._fuzzyPool || [];
+  var div = document.createElement('div');
+  div.className = 'affix-slot';
+  div.style.position = 'relative';
+
+  var filter = document.createElement('input');
+  filter.type = 'text';
+  filter.className = 'affix-list-filter';
+  filter.placeholder = 'Filter affixes...';
+
+  var sel = document.createElement('select');
+  sel.id = 'fuzzy-' + slotIndex;
+
+  function populateOptions() {
+    var currentVal = sel.value;
+    sel.innerHTML = '<option value="-1">-- None --</option>';
+    var ft = (filter.value || '').toLowerCase();
+    pool.forEach(function(a, idx) {
+      var desc = affixDescription(a);
+      var lvlReq = parseInt(a.levelreq) || 0;
+      var typeTag = a._poolType === 'prefix' ? '[P]' : '[S]';
+      var label = typeTag + ' ' + a.Name + (desc ? ' \u2014 ' + desc : '') + ' (lvl ' + a.level + (lvlReq > 0 ? ', req ' + lvlReq : '') + ')';
+      if (ft && !label.toLowerCase().includes(ft)) return;
+      var opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    });
+    if (sel.querySelector('option[value="' + currentVal + '"]')) {
+      sel.value = currentVal;
+    }
+  }
+
+  populateOptions();
+  filter.addEventListener('input', populateOptions);
+
+  sel.addEventListener('change', function() {
+    state.fuzzyAffixes[slotIndex] = parseInt(this.value);
+    renderPreview();
+  });
+
+  if (state.fuzzyAffixes[slotIndex] >= 0) {
+    sel.value = state.fuzzyAffixes[slotIndex];
+  }
+
+  var removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-affix-btn';
+  removeBtn.innerHTML = '&times;';
+  removeBtn.title = 'Remove this affix slot';
+  removeBtn.addEventListener('click', function() { removeFuzzyAffixSlot(slotIndex); });
+
+  div.appendChild(filter);
+  div.appendChild(sel);
+  div.appendChild(removeBtn);
+  return div;
+}
+
+// --- Fuzzy combinatorial odds calculation ---
+function computeFuzzyOdds() {
+  if (state.baseIndex < 0 || !state.quality) return null;
+  var items = getCategoryItems();
+  var item = items[state.baseIndex];
+  var pool = state._fuzzyPool || [];
+
+  var selectedIndices = state.fuzzyAffixes.filter(function(i) { return i >= 0; });
+  if (selectedIndices.length === 0) return null;
+
+  var selectedAffixes = selectedIndices.map(function(i) { return pool[i]; }).filter(Boolean);
+  if (selectedAffixes.length === 0) return null;
+
+  var minMatch = Math.min(state.fuzzyMin, selectedAffixes.length);
+  var alvl = calcAlvl(state.ilvl, item);
+
+  var validPrefixes = state._validPrefixes || [];
+  var validSuffixes = state._validSuffixes || [];
+  var eligPre = filterByAlvl(validPrefixes, alvl);
+  var eligSuf = filterByAlvl(validSuffixes, alvl);
+
+  var isJewelRare = state.quality === 'rare' && state.category === 'jewel';
+  var preSlots, sufSlots;
+  if (isJewelRare) {
+    preSlots = -1;
+    sufSlots = -1;
+  } else if (state.quality === 'rare') {
+    preSlots = 3;
+    sufSlots = 3;
+  } else {
+    preSlots = 1;
+    sufSlots = 1;
+  }
+
+  // Map selected affixes to indices in the eligible pools
+  var selPreSet = new Set();
+  var selSufSet = new Set();
+  for (var si2 = 0; si2 < selectedAffixes.length; si2++) {
+    var a = selectedAffixes[si2];
+    if (a._poolType === 'prefix') {
+      for (var pi = 0; pi < eligPre.length; pi++) {
+        if (eligPre[pi].Name === a.Name && eligPre[pi].group === a.group && eligPre[pi].level === a.level) {
+          selPreSet.add(pi);
+          break;
+        }
+      }
+    } else {
+      for (var xi = 0; xi < eligSuf.length; xi++) {
+        if (eligSuf[xi].Name === a.Name && eligSuf[xi].group === a.group && eligSuf[xi].level === a.level) {
+          selSufSet.add(xi);
+          break;
+        }
+      }
+    }
+  }
+
+  var allEligible = selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); });
+
+  if (state.quality === 'magic') {
+    var totalPossible = eligPre.length * eligSuf.length;
+    var totalValid = 0;
+    for (var pi2 = 0; pi2 < eligPre.length; pi2++) {
+      for (var xi2 = 0; xi2 < eligSuf.length; xi2++) {
+        var hits = 0;
+        if (selPreSet.has(pi2)) hits++;
+        if (selSufSet.has(xi2)) hits++;
+        if (hits >= minMatch) totalValid++;
+      }
+    }
+    return {
+      validCombinations: totalValid,
+      totalCombinations: totalPossible,
+      percentage: totalPossible > 0 ? (totalValid / totalPossible * 100) : 0,
+      minMatch: minMatch,
+      selectedCount: selectedAffixes.length,
+      allEligible: allEligible,
+      capped: false
+    };
+  }
+
+  return computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots);
+}
+
+function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots) {
+  var CAP = 500000;
+
+  function getGroupUniqueSubsets(pool, size) {
+    var results = [];
+    function recurse(start, current, usedGroups) {
+      if (current.length === size) {
+        results.push(current.slice());
+        return;
+      }
+      if (start >= pool.length) return;
+      if (results.length > CAP) return;
+      var remaining = pool.length - start;
+      var needed = size - current.length;
+      if (remaining < needed) return;
+      for (var i = start; i < pool.length; i++) {
+        var grp = pool[i].group;
+        if (grp && usedGroups.has(grp)) continue;
+        current.push(i);
+        if (grp) usedGroups.add(grp);
+        recurse(i + 1, current, usedGroups);
+        current.pop();
+        if (grp) usedGroups.delete(grp);
+        if (results.length > CAP) return;
+      }
+    }
+    recurse(0, [], new Set());
+    return results;
+  }
+
+  if (isJewelRare) {
+    var combined = [];
+    var ci;
+    for (ci = 0; ci < eligPre.length; ci++) combined.push({ idx: ci, type: 'prefix', affix: eligPre[ci] });
+    for (ci = 0; ci < eligSuf.length; ci++) combined.push({ idx: ci, type: 'suffix', affix: eligSuf[ci] });
+
+    var totalPossibleJ = 0;
+    var totalValidJ = 0;
+    var cappedJ = false;
+
+    function recurseJewel(start, current, usedGroups, pCount, sCount) {
+      if (current.length === 4) {
+        if (pCount >= 1 && sCount >= 1) {
+          totalPossibleJ++;
+          var hits = 0;
+          for (var ci2 = 0; ci2 < current.length; ci2++) {
+            var c = current[ci2];
+            if (c.type === 'prefix' && selPreSet.has(c.idx)) hits++;
+            if (c.type === 'suffix' && selSufSet.has(c.idx)) hits++;
+          }
+          if (hits >= minMatch) totalValidJ++;
+        }
+        return;
+      }
+      if (start >= combined.length) return;
+      if (totalPossibleJ > CAP) { cappedJ = true; return; }
+      var remaining = combined.length - start;
+      var needed = 4 - current.length;
+      if (remaining < needed) return;
+      for (var i = start; i < combined.length; i++) {
+        var entry = combined[i];
+        var grp = entry.affix.group;
+        if (grp && usedGroups.has(grp)) continue;
+        current.push(entry);
+        if (grp) usedGroups.add(grp);
+        recurseJewel(i + 1, current, usedGroups, pCount + (entry.type === 'prefix' ? 1 : 0), sCount + (entry.type === 'suffix' ? 1 : 0));
+        current.pop();
+        if (grp) usedGroups.delete(grp);
+        if (totalPossibleJ > CAP) { cappedJ = true; return; }
+      }
+    }
+
+    recurseJewel(0, [], new Set(), 0, 0);
+
+    return {
+      validCombinations: totalValidJ,
+      totalCombinations: totalPossibleJ,
+      percentage: totalPossibleJ > 0 ? (totalValidJ / totalPossibleJ * 100) : 0,
+      minMatch: minMatch,
+      selectedCount: selectedAffixes.length,
+      allEligible: selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); }),
+      capped: cappedJ
+    };
+  }
+
+  // Rare: 3 prefix + 3 suffix slots
+  var preCombos = getGroupUniqueSubsets(eligPre, preSlots);
+  var sufCombos = getGroupUniqueSubsets(eligSuf, sufSlots);
+  var cappedR = preCombos.length > CAP || sufCombos.length > CAP;
+  var totalPossibleR = preCombos.length * sufCombos.length;
+  var totalValidR = 0;
+
+  var preHitCounts = preCombos.map(function(combo) {
+    var hits = 0;
+    for (var ci3 = 0; ci3 < combo.length; ci3++) {
+      if (selPreSet.has(combo[ci3])) hits++;
+    }
+    return hits;
+  });
+
+  var sufHitDist = {};
+  for (var sci = 0; sci < sufCombos.length; sci++) {
+    var hitsS = 0;
+    for (var ci4 = 0; ci4 < sufCombos[sci].length; ci4++) {
+      if (selSufSet.has(sufCombos[sci][ci4])) hitsS++;
+    }
+    sufHitDist[hitsS] = (sufHitDist[hitsS] || 0) + 1;
+  }
+
+  for (var phi = 0; phi < preHitCounts.length; phi++) {
+    var preHits = preHitCounts[phi];
+    var needSuf = Math.max(0, minMatch - preHits);
+    for (var sh in sufHitDist) {
+      if (parseInt(sh) >= needSuf) totalValidR += sufHitDist[sh];
+    }
+  }
+
+  return {
+    validCombinations: totalValidR,
+    totalCombinations: totalPossibleR,
+    percentage: totalPossibleR > 0 ? (totalValidR / totalPossibleR * 100) : 0,
+    minMatch: minMatch,
+    selectedCount: selectedAffixes.length,
+    allEligible: selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); }),
+    capped: cappedR
+  };
 }
 
 function buildAffixSlots() {
@@ -797,6 +1194,44 @@ function renderPreview() {
   const item = items[state.baseIndex];
   if (!state.quality) {
     preview.innerHTML = '<div class="no-item">Select Magic or Rare quality</div>';
+    stateToHash();
+    return;
+  }
+
+
+  // Fuzzy mode: show combinatorial odds instead of normal item preview
+  if (state.affixMode === 'fuzzy') {
+    var html = '';
+    html += '<div class="item-name ' + (state.quality === 'magic' ? 'magic' : 'rare') + '">' + esc(item.name) + '</div>';
+    html += '<div style="color:#888; font-size:0.85rem; font-style:italic; margin: 10px 0;">Fuzzy Affixes mode - showing combination odds</div>';
+
+    var fuzzyResult = computeFuzzyOdds();
+    if (fuzzyResult) {
+      html += '<div class="fuzzy-results">';
+      html += '<div class="fuzzy-header">Fuzzy Affix Combinations</div>';
+      html += '<div class="fuzzy-stat">Selected affixes: <span class="val">' + fuzzyResult.selectedCount + '</span></div>';
+      html += '<div class="fuzzy-stat">Minimum to match: <span class="val">' + fuzzyResult.minMatch + '</span></div>';
+      if (!fuzzyResult.allEligible) {
+        html += '<div class="fuzzy-stat" style="color:#cc4444;">Warning: some selected affixes are not eligible at current alvl</div>';
+      }
+      html += '<div class="separator"></div>';
+      html += '<div class="fuzzy-stat">Valid combinations (>= ' + fuzzyResult.minMatch + ' match): <span class="val">' + shortNum(fuzzyResult.validCombinations) + '</span></div>';
+      html += '<div class="fuzzy-stat">Total possible combinations: <span class="val">' + shortNum(fuzzyResult.totalCombinations) + '</span></div>';
+      if (fuzzyResult.capped) {
+        html += '<div class="fuzzy-stat" style="color:#cc8844;">Note: large pool - enumeration capped, results are approximate</div>';
+      }
+      var pct = fuzzyResult.percentage;
+      html += '<div class="fuzzy-pct">' + (pct > 0 ? pct.toFixed(4) + '%' : '0%') + '</div>';
+      if (pct > 0) {
+        var ratio = Math.round(100 / pct);
+        html += '<div class="fuzzy-stat">Approximately <span class="val">' + oddsText(ratio) + '</span></div>';
+      }
+      html += '</div>';
+    } else {
+      html += '<div style="color:#555; margin-top: 20px;">Select at least one affix to see combination odds</div>';
+    }
+
+    preview.innerHTML = html;
     stateToHash();
     return;
   }
