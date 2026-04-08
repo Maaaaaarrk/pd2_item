@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PD2 Theoretical Item Builder</title>
+<style>
+  @font-face {
+    font-family: 'Exocet';
+    src: url('data/font/exocetblizzardot-medium.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 20px; }
+  h1 { text-align: center; color: #c4a84f; margin-bottom: 20px; font-size: 1.6rem; font-family: 'Exocet', serif; }
+  .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap; }
+  .panel { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 16px; flex: 1; min-width: 320px; }
+  .panel h2 { color: #c4a84f; font-size: 1.1rem; margin-bottom: 12px; border-bottom: 1px solid #0f3460; padding-bottom: 8px; font-family: 'Exocet', serif; }
+  label { display: block; font-size: 0.85rem; color: #a0a0b0; margin-bottom: 4px; margin-top: 10px; }
+  select, input[type="text"] { width: 100%; padding: 8px; background: #0f3460; border: 1px solid #1a4080; color: #e0e0e0; border-radius: 4px; font-size: 0.9rem; }
+  select:focus, input:focus { outline: none; border-color: #c4a84f; }
+  .quality-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .quality-btns button { flex: 1; padding: 10px; border: 2px solid #0f3460; background: #0f3460; color: #e0e0e0; border-radius: 4px; cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: all 0.15s; }
+  .quality-btns button:hover { border-color: #c4a84f; }
+  .quality-btns button.active-magic { border-color: #4169e1; background: #1a3a7a; color: #6495ed; }
+  .quality-btns button.active-rare { border-color: #cccc00; background: #3a3a0a; color: #ffff44; }
+  .affix-section { margin-top: 14px; }
+  .affix-section h3 { font-size: 0.95rem; color: #8899aa; margin-bottom: 6px; }
+  .affix-slot { margin-bottom: 8px; position: relative; }
+  .affix-slot select { font-size: 0.85rem; }
+  .affix-list-filter { margin-bottom: 6px; }
+  .item-preview { background: #000; border: 1px solid #333; border-radius: 6px; padding: 20px; text-align: center; min-height: 200px; font-family: 'Exocet', serif; }
+  .item-preview .item-name { font-size: 1.3rem; font-weight: bold; margin-bottom: 12px; font-family: 'Exocet', serif; letter-spacing: 1px; }
+  .item-preview .item-name.magic { color: #6495ed; }
+  .item-preview .item-name.rare { color: #ffff44; }
+  .item-preview .base-stats { color: #8888aa; font-size: 0.9rem; margin-bottom: 10px; }
+  .item-preview .base-stats div { margin: 2px 0; }
+  .item-preview .affix-stats { color: #4169e1; font-size: 0.9rem; text-align: left; display: inline-block; }
+  .item-preview .affix-stats div { margin: 2px 0; }
+  .item-preview .affix-stats .prefix-stat { color: #6495ed; }
+  .item-preview .affix-stats .suffix-stat { color: #6495ed; }
+  .item-preview .req { color: #666; font-size: 0.85rem; margin-top: 8px; }
+  .item-preview .separator { border-top: 1px solid #333; margin: 8px 0; }
+  .no-item { color: #555; font-style: italic; margin-top: 60px; }
+  .mod-line { margin: 1px 0; }
+  .mod-range { color: #888; font-size: 0.8rem; }
+  .item-preview .base-name { color: #ffff44; font-size: 0.95rem; margin-bottom: 10px; }
+  .reroll-btn { cursor: pointer; font-size: 1rem; color: #888; margin-left: 6px; vertical-align: middle; }
+  .reroll-btn:hover { color: #ffff44; }
+</style>
+<script src="data/js/Armor.js"></script>
+<script src="data/js/Weapons.js"></script>
+<script src="data/js/ItemTypes.js"></script>
+<script src="data/js/MagicPrefix.js"></script>
+<script src="data/js/MagicSuffix.js"></script>
+<script src="data/js/WeaponClass.js"></script>
+<script src="data/js/RarePrefix.js"></script>
+<script src="data/js/RareSuffix.js"></script>
+</head>
+<body>
+<h1>PD2 Theoretical Item Builder</h1>
+<div class="container">
+  <!-- Left Panel: Selection -->
+  <div class="panel" style="flex: 1.2;">
+    <h2>Item Selection</h2>
+
+    <label for="category">Category</label>
+    <select id="category">
+      <option value="">-- Select --</option>
+      <option value="armor">Armor</option>
+      <option value="weapon">Weapon</option>
+    </select>
+
+    <label for="tier">Tier</label>
+    <select id="tier" disabled>
+      <option value="">-- Select category first --</option>
+    </select>
+
+    <label for="item-class">Item Class</label>
+    <select id="item-class" disabled>
+      <option value="">-- Select tier first --</option>
+    </select>
+
+    <label for="base">Item Base</label>
+    <select id="base" disabled>
+      <option value="">-- Select class first --</option>
+    </select>
+
+    <label>Quality</label>
+    <div class="quality-btns">
+      <button id="btn-magic" disabled onclick="setQuality('magic')">Magic</button>
+      <button id="btn-rare" disabled onclick="setQuality('rare')">Rare</button>
+    </div>
+
+    <div id="affix-area" style="display:none;">
+      <div class="affix-section">
+        <h3 id="prefix-header">Prefixes</h3>
+        <div id="prefix-slots"></div>
+      </div>
+      <div class="affix-section">
+        <h3 id="suffix-header">Suffixes</h3>
+        <div id="suffix-slots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel: Preview -->
+  <div class="panel" style="flex: 1;">
+    <h2>Item Preview</h2>
+    <div class="item-preview" id="preview">
+      <div class="no-item">Select an item base and quality to begin</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- Data from global JS files ---
+let armorData = ARMOR_DATA;
+let weaponData = WEAPONS_DATA;
+let itemTypes = ITEM_TYPES_DATA;
+let prefixes = MAGIC_PREFIX_DATA.filter(a => a.Name && a.spawnable !== '0');
+let suffixes = MAGIC_SUFFIX_DATA.filter(a => a.Name && a.spawnable !== '0');
+let typeMap = {};
+for (const t of itemTypes) { if (t.Code) typeMap[t.Code] = t; }
+let rarePrefixes = RARE_PREFIX_DATA.filter(a => a.name);
+let rareSuffixes = RARE_SUFFIX_DATA.filter(a => a.name);
+let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', selectedPrefixes: [], selectedSuffixes: [], rareName: '' };
+
+// --- Tier detection: Normal / Exceptional / Elite ---
+function getItemTier(item) {
+  const code = item.code;
+  if (code && item.ultracode && code === item.ultracode && code !== item.normcode) return 'elite';
+  if (code && item.ubercode && code === item.ubercode && code !== item.normcode) return 'exceptional';
+  return 'normal';
+}
+
+// --- Get display name for a type code from ItemTypes ---
+function getTypeDisplayName(typeCode) {
+  const entry = typeMap[typeCode];
+  return entry ? entry.ItemType : typeCode;
+}
+
+// --- Rare name generation ---
+function getValidRareNames(nameList, item) {
+  const { fullChain, direct } = getItemTypeSets(item);
+  return nameList.filter(a => affixMatchesItem(a, fullChain, direct));
+}
+
+function rollRareName(item) {
+  const validPre = getValidRareNames(rarePrefixes, item);
+  const validSuf = getValidRareNames(rareSuffixes, item);
+  if (validPre.length === 0 || validSuf.length === 0) return 'Rare ' + item.name;
+  const pre = validPre[Math.floor(Math.random() * validPre.length)];
+  const suf = validSuf[Math.floor(Math.random() * validSuf.length)];
+  return pre.name + ' ' + suf.name;
+}
+
+// --- Type hierarchy: get all type codes for an item (its type + all ancestors) ---
+function getTypeChain(typeCode) {
+  const chain = new Set();
+  const visited = new Set();
+  const queue = [typeCode];
+  while (queue.length) {
+    const code = queue.shift();
+    if (!code || visited.has(code)) continue;
+    visited.add(code);
+    chain.add(code);
+    const entry = typeMap[code];
+    if (entry) {
+      if (entry.Equiv1) queue.push(entry.Equiv1);
+      if (entry.Equiv2) queue.push(entry.Equiv2);
+    }
+  }
+  return chain;
+}
+
+// --- Check if an affix can appear on an item ---
+// itype check uses full ancestor chain, etype check uses direct types only
+function affixMatchesItem(affix, fullTypeChain, directTypes) {
+  // Collect affix's included types
+  const itypes = [];
+  for (let i = 1; i <= 7; i++) {
+    const v = affix['itype' + i];
+    if (v) itypes.push(v);
+  }
+  if (itypes.length === 0) return false;
+
+  // Collect affix's excluded types
+  const etypes = [];
+  for (let i = 1; i <= 5; i++) {
+    const v = affix['etype' + i];
+    if (v) etypes.push(v);
+  }
+
+  // Item must match at least one itype (full ancestor chain)
+  const matches = itypes.some(it => fullTypeChain.has(it));
+  if (!matches) return false;
+
+  // Item must NOT match any etype (direct types only)
+  const excluded = etypes.some(et => directTypes.has(et));
+  return !excluded;
+}
+
+// --- Build both type sets for an item ---
+function getItemTypeSets(item) {
+  const types1 = getTypeChain(item.type);
+  const types2 = item.type2 ? getTypeChain(item.type2) : new Set();
+  const fullChain = new Set([...types1, ...types2]);
+  const direct = new Set();
+  if (item.type) direct.add(item.type);
+  if (item.type2) direct.add(item.type2);
+  return { fullChain, direct };
+}
+
+// --- Get valid affixes for an item base + quality ---
+function getValidAffixes(affixList, item, quality) {
+  const { fullChain, direct } = getItemTypeSets(item);
+
+  return affixList.filter(a => {
+    if (quality === 'rare' && a.rare !== '1') return false;
+    return affixMatchesItem(a, fullChain, direct);
+  });
+}
+
+// --- Helper to reset downstream controls ---
+function resetFrom(level) {
+  // level: 'tier', 'class', 'base', 'quality'
+  const tierSel = document.getElementById('tier');
+  const classSel = document.getElementById('item-class');
+  const baseSel = document.getElementById('base');
+  const btnMagic = document.getElementById('btn-magic');
+  const btnRare = document.getElementById('btn-rare');
+
+  if (level === 'tier' || level === 'all') {
+    state.tier = '';
+    tierSel.innerHTML = '<option value="">-- Select tier --</option>';
+    tierSel.disabled = true;
+  }
+  if (level === 'tier' || level === 'class' || level === 'all') {
+    state.itemClass = '';
+    classSel.innerHTML = '<option value="">-- Select class --</option>';
+    classSel.disabled = true;
+  }
+  if (level === 'tier' || level === 'class' || level === 'base' || level === 'all') {
+    state.baseIndex = -1;
+    baseSel.innerHTML = '<option value="">-- Select item --</option>';
+    baseSel.disabled = true;
+  }
+  state.quality = '';
+  state.selectedPrefixes = [];
+  state.selectedSuffixes = [];
+  btnMagic.disabled = true;
+  btnRare.disabled = true;
+  btnMagic.className = '';
+  btnRare.className = '';
+  document.getElementById('affix-area').style.display = 'none';
+  renderPreview();
+}
+
+// --- Get all items for the current category ---
+function getCategoryItems() {
+  return state.category === 'armor' ? armorData : weaponData;
+}
+
+// --- UI handlers ---
+document.getElementById('category').addEventListener('change', function() {
+  state.category = this.value;
+  resetFrom('tier');
+  if (!state.category) return;
+
+  const tierSel = document.getElementById('tier');
+  tierSel.disabled = false;
+  tierSel.innerHTML = '<option value="">-- Select tier --</option>';
+
+  const items = getCategoryItems().filter(i => i.name && i.name.trim());
+  // Determine which tiers exist
+  const tiers = new Set(items.map(i => getItemTier(i)));
+  const tierLabels = { normal: 'Normal', exceptional: 'Exceptional', elite: 'Elite' };
+  for (const t of ['normal', 'exceptional', 'elite']) {
+    if (tiers.has(t)) {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = tierLabels[t];
+      tierSel.appendChild(opt);
+    }
+  }
+});
+
+document.getElementById('tier').addEventListener('change', function() {
+  state.tier = this.value;
+  resetFrom('class');
+  if (!state.tier) return;
+
+  const classSel = document.getElementById('item-class');
+  classSel.disabled = false;
+  classSel.innerHTML = '<option value="">-- Select class --</option>';
+
+  const items = getCategoryItems().filter(i => i.name && i.name.trim() && getItemTier(i) === state.tier);
+  // Get unique type codes in order of first appearance
+  const seen = new Set();
+  const typeOrder = [];
+  for (const item of items) {
+    if (!seen.has(item.type)) {
+      seen.add(item.type);
+      typeOrder.push(item.type);
+    }
+  }
+  for (const tc of typeOrder) {
+    const opt = document.createElement('option');
+    opt.value = tc;
+    opt.textContent = getTypeDisplayName(tc);
+    classSel.appendChild(opt);
+  }
+});
+
+document.getElementById('item-class').addEventListener('change', function() {
+  state.itemClass = this.value;
+  resetFrom('base');
+  if (!state.itemClass) return;
+
+  const baseSel = document.getElementById('base');
+  baseSel.disabled = false;
+  baseSel.innerHTML = '<option value="">-- Select item --</option>';
+
+  const allItems = getCategoryItems();
+  const items = allItems.filter(i =>
+    i.name && i.name.trim() &&
+    getItemTier(i) === state.tier &&
+    i.type === state.itemClass
+  );
+
+  for (const item of items) {
+    const origIndex = allItems.indexOf(item);
+    const opt = document.createElement('option');
+    opt.value = origIndex;
+    if (state.category === 'armor') {
+      opt.textContent = item.name + ' (Def: ' + item.minac + '-' + item.maxac + ')';
+    } else {
+      let dmgText = item.mindam + '-' + item.maxdam;
+      if (item['2handed'] === '1' || item['1or2handed'] === '1') {
+        dmgText += ' / 2H: ' + item['2handmindam'] + '-' + item['2handmaxdam'];
+      }
+      opt.textContent = item.name + ' (' + dmgText + ')';
+    }
+    baseSel.appendChild(opt);
+  }
+});
+
+document.getElementById('base').addEventListener('change', function() {
+  state.baseIndex = parseInt(this.value);
+  state.quality = '';
+  state.selectedPrefixes = [];
+  state.selectedSuffixes = [];
+  const valid = !isNaN(state.baseIndex) && state.baseIndex >= 0;
+  document.getElementById('btn-magic').disabled = !valid;
+  document.getElementById('btn-rare').disabled = !valid;
+  document.getElementById('btn-magic').className = '';
+  document.getElementById('btn-rare').className = '';
+  document.getElementById('affix-area').style.display = 'none';
+  renderPreview();
+});
+
+function setQuality(q) {
+  state.quality = q;
+  state.selectedPrefixes = [];
+  state.selectedSuffixes = [];
+  document.getElementById('btn-magic').className = q === 'magic' ? 'active-magic' : '';
+  document.getElementById('btn-rare').className = q === 'rare' ? 'active-rare' : '';
+  // Roll a random rare name when switching to rare
+  if (q === 'rare') {
+    const items = getCategoryItems();
+    const item = items[state.baseIndex];
+    state.rareName = rollRareName(item);
+  } else {
+    state.rareName = '';
+  }
+  buildAffixSlots();
+  renderPreview();
+}
+
+function rerollRareName() {
+  const items = getCategoryItems();
+  const item = items[state.baseIndex];
+  state.rareName = rollRareName(item);
+  renderPreview();
+}
+
+function buildAffixSlots() {
+  const maxPre = state.quality === 'rare' ? 3 : 1;
+  const maxSuf = state.quality === 'rare' ? 3 : 1;
+  const area = document.getElementById('affix-area');
+  area.style.display = 'block';
+
+  document.getElementById('prefix-header').textContent = 'Prefixes (up to ' + maxPre + ')';
+  document.getElementById('suffix-header').textContent = 'Suffixes (up to ' + maxSuf + ')';
+
+  const items = state.category === 'armor' ? armorData : weaponData;
+  const item = items[state.baseIndex];
+
+  const validPrefixes = getValidAffixes(prefixes, item, state.quality);
+  const validSuffixes = getValidAffixes(suffixes, item, state.quality);
+  state._validPrefixes = validPrefixes;
+  state._validSuffixes = validSuffixes;
+
+  // Build prefix slots
+  const preContainer = document.getElementById('prefix-slots');
+  preContainer.innerHTML = '';
+  for (let i = 0; i < maxPre; i++) {
+    state.selectedPrefixes[i] = -1;
+    preContainer.appendChild(createAffixSelect('prefix', i, validPrefixes));
+  }
+
+  // Build suffix slots
+  const sufContainer = document.getElementById('suffix-slots');
+  sufContainer.innerHTML = '';
+  for (let i = 0; i < maxSuf; i++) {
+    state.selectedSuffixes[i] = -1;
+    sufContainer.appendChild(createAffixSelect('suffix', i, validSuffixes));
+  }
+}
+
+// --- Get groups used by other slots of the same type, excluding the given slot ---
+function getUsedGroups(type, excludeSlot) {
+  const arr = type === 'prefix' ? state.selectedPrefixes : state.selectedSuffixes;
+  const pool = type === 'prefix' ? state._validPrefixes : state._validSuffixes;
+  const groups = new Set();
+  for (let i = 0; i < arr.length; i++) {
+    if (i === excludeSlot || arr[i] < 0) continue;
+    const affix = pool[arr[i]];
+    if (affix && affix.group) groups.add(affix.group);
+  }
+  return groups;
+}
+
+// --- Refresh all sibling slot options (to update group filtering) ---
+function refreshAffixSlots(type) {
+  const maxSlots = type === 'prefix' ? state.selectedPrefixes.length : state.selectedSuffixes.length;
+  for (let i = 0; i < maxSlots; i++) {
+    const sel = document.getElementById(type + '-' + i);
+    if (sel && sel._populate) sel._populate();
+  }
+}
+
+function createAffixSelect(type, slotIndex, affixPool) {
+  const div = document.createElement('div');
+  div.className = 'affix-slot';
+
+  const filter = document.createElement('input');
+  filter.type = 'text';
+  filter.className = 'affix-list-filter';
+  filter.placeholder = 'Filter ' + type + '...';
+
+  const sel = document.createElement('select');
+  sel.id = type + '-' + slotIndex;
+
+  function populateOptions() {
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="-1">-- None --</option>';
+    const ft = (filter.value || '').toLowerCase();
+    const usedGroups = getUsedGroups(type, slotIndex);
+
+    affixPool.forEach((a, idx) => {
+      // Skip if this affix's group is already used by another slot
+      if (a.group && usedGroups.has(a.group)) return;
+      // Build a description of what the affix does
+      const desc = affixDescription(a);
+      const label = a.Name + (desc ? ' — ' + desc : '') + ' (lvl ' + a.level + ')';
+      if (ft && !label.toLowerCase().includes(ft)) return;
+      const opt = document.createElement('option');
+      opt.value = idx;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    });
+
+    // Restore selection if still valid
+    if (sel.querySelector('option[value="' + currentVal + '"]')) {
+      sel.value = currentVal;
+    }
+  }
+
+  // Store populate function on the element so siblings can trigger it
+  sel._populate = populateOptions;
+
+  populateOptions();
+
+  filter.addEventListener('input', populateOptions);
+
+  sel.addEventListener('change', function() {
+    const arr = type === 'prefix' ? state.selectedPrefixes : state.selectedSuffixes;
+    arr[slotIndex] = parseInt(this.value);
+    refreshAffixSlots(type);
+    renderPreview();
+  });
+
+  div.appendChild(filter);
+  div.appendChild(sel);
+  return div;
+}
+
+function affixDescription(affix) {
+  const parts = [];
+  for (let i = 1; i <= 3; i++) {
+    const code = affix['mod' + i + 'code'];
+    if (!code) continue;
+    const min = affix['mod' + i + 'min'];
+    const max = affix['mod' + i + 'max'];
+    const param = affix['mod' + i + 'param'];
+    let desc = code;
+    if (param) desc += '(' + param + ')';
+    if (min && max) {
+      desc += ' [' + min + (min !== max ? '-' + max : '') + ']';
+    }
+    parts.push(desc);
+  }
+  return parts.join(', ');
+}
+
+// --- Preview rendering ---
+function renderPreview() {
+  const preview = document.getElementById('preview');
+  const items = state.category === 'armor' ? armorData : weaponData;
+
+  if (state.baseIndex < 0 || !state.category) {
+    preview.innerHTML = '<div class="no-item">Select an item base and quality to begin</div>';
+    stateToHash();
+    return;
+  }
+
+  const item = items[state.baseIndex];
+  if (!state.quality) {
+    preview.innerHTML = '<div class="no-item">Select Magic or Rare quality</div>';
+    stateToHash();
+    return;
+  }
+
+  const validPrefixes = getValidAffixes(prefixes, item, state.quality);
+  const validSuffixes = getValidAffixes(suffixes, item, state.quality);
+
+  // Gather selected affixes
+  const selPre = state.selectedPrefixes
+    .filter(i => i >= 0)
+    .map(i => validPrefixes[i])
+    .filter(Boolean);
+  const selSuf = state.selectedSuffixes
+    .filter(i => i >= 0)
+    .map(i => validSuffixes[i])
+    .filter(Boolean);
+
+  // Build item name
+  const nameClass = state.quality === 'magic' ? 'magic' : 'rare';
+  let html = '';
+
+  if (state.quality === 'rare') {
+    // Rare: random name from RarePrefix + RareSuffix, base name shown below
+    html += '<div class="item-name ' + nameClass + '">' + esc(state.rareName) +
+      ' <span class="reroll-btn" onclick="rerollRareName()" title="Reroll rare name">&#x21bb;</span></div>';
+    html += '<div class="base-name">' + esc(item.name) + '</div>';
+  } else {
+    // Magic: prefix + base + suffix
+    let itemName = '';
+    if (selPre.length > 0) itemName += selPre[0].Name + ' ';
+    itemName += item.name;
+    if (selSuf.length > 0) itemName += ' ' + selSuf[0].Name;
+    html += '<div class="item-name ' + nameClass + '">' + esc(itemName) + '</div>';
+  }
+
+  // Base stats
+  html += '<div class="base-stats">';
+  if (state.category === 'armor') {
+    html += '<div>Defense: ' + item.minac + '-' + item.maxac + '</div>';
+  } else {
+    html += '<div>One-Hand Damage: ' + item.mindam + '-' + item.maxdam + '</div>';
+    if (item['2handed'] === '1' || item['1or2handed'] === '1') {
+      html += '<div>Two-Hand Damage: ' + item['2handmindam'] + '-' + item['2handmaxdam'] + '</div>';
+    }
+  }
+  if (item.durability && item.nodurability !== '1') {
+    html += '<div>Durability: ' + item.durability + '</div>';
+  }
+  html += '</div>';
+
+  // Affix mods
+  const allMods = [];
+  for (const a of selPre) {
+    for (let i = 1; i <= 3; i++) {
+      const code = a['mod' + i + 'code'];
+      if (code) allMods.push({ code, param: a['mod' + i + 'param'], min: a['mod' + i + 'min'], max: a['mod' + i + 'max'], type: 'prefix' });
+    }
+  }
+  for (const a of selSuf) {
+    for (let i = 1; i <= 3; i++) {
+      const code = a['mod' + i + 'code'];
+      if (code) allMods.push({ code, param: a['mod' + i + 'param'], min: a['mod' + i + 'min'], max: a['mod' + i + 'max'], type: 'suffix' });
+    }
+  }
+
+  if (allMods.length > 0) {
+    html += '<div class="separator"></div>';
+    html += '<div class="affix-stats">';
+    for (const m of allMods) {
+      const cls = m.type + '-stat';
+      let line = formatMod(m.code, m.param, m.min, m.max);
+      html += '<div class="' + cls + ' mod-line">' + esc(line) + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // Requirements
+  html += '<div class="separator"></div>';
+  html += '<div class="req">';
+  if (item.levelreq && item.levelreq !== '0') html += '<div>Required Level: ' + item.levelreq + '</div>';
+  if (item.reqstr && item.reqstr !== '0') html += '<div>Required Strength: ' + item.reqstr + '</div>';
+  if (item.reqdex && item.reqdex !== '0') html += '<div>Required Dexterity: ' + item.reqdex + '</div>';
+  html += '<div>Item Level: ' + item.level + '</div>';
+  html += '</div>';
+
+  preview.innerHTML = html;
+  stateToHash();
+}
+
+// --- Mod code -> human-readable text ---
+const MOD_NAMES = {
+  'ac%': '+{range}% Enhanced Defense',
+  'ac': '+{range} Defense',
+  'str': '+{range} to Strength',
+  'dex': '+{range} to Dexterity',
+  'vit': '+{range} to Vitality',
+  'enr': '+{range} to Energy',
+  'hp': '+{range} to Life',
+  'mana': '+{range} to Mana',
+  'att': '+{range} to Attack Rating',
+  'att%': '+{range}% to Attack Rating',
+  'dmg%': '+{range}% Enhanced Damage',
+  'dmg-min': '+{range} to Minimum Damage',
+  'dmg-max': '+{range} to Maximum Damage',
+  'dmg-norm': '+{range} to Damage',
+  'red-dmg': 'Damage Reduced by {range}',
+  'red-dmg%': 'Damage Reduced by {range}%',
+  'red-mag': 'Magic Damage Reduced by {range}',
+  'res-fire': '+{range}% Fire Resistance',
+  'res-ltng': '+{range}% Lightning Resistance',
+  'res-cold': '+{range}% Cold Resistance',
+  'res-pois': '+{range}% Poison Resistance',
+  'res-all': '+{range}% All Resistances',
+  'swing2': '+{range}% Increased Attack Speed',
+  'move2': '+{range}% Faster Run/Walk',
+  'cast2': '+{range}% Faster Cast Rate',
+  'block2': '+{range}% Faster Block Rate',
+  'hit-recover2': '+{range}% Faster Hit Recovery',
+  'gold%': '+{range}% Extra Gold from Monsters',
+  'mag%': '+{range}% Better Chance of Getting Magic Items',
+  'regen': 'Replenish Life +{range}',
+  'regen-mana': 'Regenerate Mana {range}%',
+  'manasteal': '+{range}% Mana Stolen per Hit',
+  'lifesteal': '+{range}% Life Stolen per Hit',
+  'light': '+{range} to Light Radius',
+  'thorns': 'Attacker Takes Damage of {range}',
+  'knock': 'Knockback',
+  'sock': '{range} Sockets',
+  'dur': '+{range}% Enhanced Durability',
+  'indestruct': 'Indestructible',
+  'crush': '+{range}% Chance of Crushing Blow',
+  'deadly': '+{range}% Deadly Strike',
+  'openwounds': '+{range}% Chance of Open Wounds',
+  'fire-min': '+{range} Fire Damage (min)',
+  'fire-max': '+{range} Fire Damage (max)',
+  'ltng-min': '+{range} Lightning Damage (min)',
+  'ltng-max': '+{range} Lightning Damage (max)',
+  'cold-min': '+{range} Cold Damage (min)',
+  'cold-max': '+{range} Cold Damage (max)',
+  'pois-min': '+{range} Poison Damage (min)',
+  'pois-max': '+{range} Poison Damage (max)',
+  'balance2': '+{range}% Faster Block Rate',
+  'stupidity': 'Hit Blinds Target +{range}',
+  'freeze': 'Freezes Target +{range}',
+  'ease': 'Requirements -{range}%',
+  'noheal': 'Prevent Monster Heal',
+  'half-freeze': 'Half Freeze Duration',
+  'nofreeze': 'Cannot Be Frozen',
+  'howl': 'Hit Causes Monster to Flee {range}%',
+  'skill': '+{range} to {param}',
+  'skilltab': '+{range} to Skill Tab {param}',
+  'allskills': '+{range} to All Skills',
+  'oskill': '+{range} to {param} (oskill)',
+  'charged': 'Level {param} Charged ({range} charges)',
+  'aura': 'Level {param} Aura When Equipped',
+  'att-skill': '{range}% Chance to Cast Level {param} on Attack',
+  'hit-skill': '{range}% Chance to Cast Level {param} on Striking',
+  'gethit-skill': '{range}% Chance to Cast Level {param} When Struck',
+  'kill-skill': '{range}% Chance to Cast Level {param} on Kill',
+  'death-skill': '{range}% Chance to Cast Level {param} on Death',
+  'levelup-skill': '{range}% Chance to Cast Level {param} on Level Up',
+  'rep-dur': 'Repairs Durability',
+  'rep-quant': 'Replenishes Quantity',
+  'pierce': '+{range}% Pierce Attack',
+  'dmg-demon': '+{range}% Damage to Demons',
+  'dmg-undead': '+{range}% Damage to Undead',
+  'att-demon': '+{range} to AR vs. Demons',
+  'att-undead': '+{range} to AR vs. Undead',
+  'abs-fire': '+{range} Fire Absorb',
+  'abs-ltng': '+{range} Lightning Absorb',
+  'abs-cold': '+{range} Cold Absorb',
+  'abs-fire%': '+{range}% Fire Absorb',
+  'abs-ltng%': '+{range}% Lightning Absorb',
+  'abs-cold%': '+{range}% Cold Absorb',
+  'dmg-ac': '+{range} Damage to Mana',
+  'extra-fire': '+{range}% to Fire Skill Damage',
+  'extra-ltng': '+{range}% to Lightning Skill Damage',
+  'extra-cold': '+{range}% to Cold Skill Damage',
+  'extra-pois': '+{range}% to Poison Skill Damage',
+};
+
+function formatMod(code, param, min, max) {
+  const template = MOD_NAMES[code];
+  if (!template) {
+    let s = code;
+    if (param) s += '(' + param + ')';
+    if (min && max) s += ': ' + min + (min !== max ? '-' + max : '');
+    return s;
+  }
+  const range = min && max ? (min === max ? min : min + '-' + max) : '';
+  return template.replace('{range}', range).replace('{param}', param || '');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// --- URL state serialization ---
+function stateToHash() {
+  if (state.baseIndex < 0 || !state.category || !state.quality) {
+    history.replaceState(null, '', location.pathname);
+    return;
+  }
+  const items = getCategoryItems();
+  const item = items[state.baseIndex];
+  const parts = ['b=' + item.code, 'q=' + state.quality[0]];
+
+  // Map selected valid-pool indices to global prefix/suffix indices
+  const validPre = state._validPrefixes || [];
+  const validSuf = state._validSuffixes || [];
+
+  const preIds = state.selectedPrefixes
+    .filter(i => i >= 0 && validPre[i])
+    .map(i => prefixes.indexOf(validPre[i]))
+    .filter(i => i >= 0);
+  const sufIds = state.selectedSuffixes
+    .filter(i => i >= 0 && validSuf[i])
+    .map(i => suffixes.indexOf(validSuf[i]))
+    .filter(i => i >= 0);
+
+  if (preIds.length) parts.push('p=' + preIds.join('.'));
+  if (sufIds.length) parts.push('s=' + sufIds.join('.'));
+
+  // Rare name
+  if (state.quality === 'rare' && state.rareName) {
+    const nameParts = state.rareName.split(' ');
+    if (nameParts.length >= 2) {
+      const rpi = rarePrefixes.findIndex(r => r.name === nameParts[0]);
+      const rsi = rareSuffixes.findIndex(r => r.name === nameParts.slice(1).join(' '));
+      if (rpi >= 0 && rsi >= 0) parts.push('rn=' + rpi + '.' + rsi);
+    }
+  }
+
+  history.replaceState(null, '', '#' + parts.join('&'));
+}
+
+function loadFromHash() {
+  const hash = location.hash.slice(1);
+  if (!hash) return;
+  const params = {};
+  for (const part of hash.split('&')) {
+    const [k, v] = part.split('=');
+    if (k && v) params[k] = v;
+  }
+  if (!params.b || !params.q) return;
+
+  const code = params.b;
+  const quality = params.q === 'r' ? 'rare' : 'magic';
+
+  // Find the item by code in both arrays
+  let category = '';
+  let baseIndex = armorData.findIndex(i => i.code === code);
+  if (baseIndex >= 0) {
+    category = 'armor';
+  } else {
+    baseIndex = weaponData.findIndex(i => i.code === code);
+    if (baseIndex >= 0) category = 'weapon';
+  }
+  if (!category) return;
+
+  const items = category === 'armor' ? armorData : weaponData;
+  const item = items[baseIndex];
+  const tier = getItemTier(item);
+
+  // Set category
+  state.category = category;
+  document.getElementById('category').value = category;
+
+  // Populate and set tier
+  document.getElementById('category').dispatchEvent(new Event('change'));
+  document.getElementById('tier').value = tier;
+  document.getElementById('tier').dispatchEvent(new Event('change'));
+
+  // Set item class
+  document.getElementById('item-class').value = item.type;
+  document.getElementById('item-class').dispatchEvent(new Event('change'));
+
+  // Set base
+  document.getElementById('base').value = baseIndex;
+  document.getElementById('base').dispatchEvent(new Event('change'));
+
+  // Set quality (without re-rolling rare name yet)
+  state.quality = quality;
+  state.selectedPrefixes = [];
+  state.selectedSuffixes = [];
+  document.getElementById('btn-magic').className = quality === 'magic' ? 'active-magic' : '';
+  document.getElementById('btn-rare').className = quality === 'rare' ? 'active-rare' : '';
+
+  // Restore rare name before building slots
+  if (quality === 'rare' && params.rn) {
+    const [rpi, rsi] = params.rn.split('.').map(Number);
+    if (rarePrefixes[rpi] && rareSuffixes[rsi]) {
+      state.rareName = rarePrefixes[rpi].name + ' ' + rareSuffixes[rsi].name;
+    } else {
+      state.rareName = rollRareName(item);
+    }
+  } else {
+    state.rareName = '';
+  }
+
+  buildAffixSlots();
+
+  // Restore affix selections
+  const validPre = state._validPrefixes || [];
+  const validSuf = state._validSuffixes || [];
+
+  if (params.p) {
+    const preIds = params.p.split('.').map(Number);
+    for (let i = 0; i < preIds.length && i < state.selectedPrefixes.length; i++) {
+      const affix = prefixes[preIds[i]];
+      if (!affix) continue;
+      const poolIdx = validPre.indexOf(affix);
+      if (poolIdx >= 0) {
+        state.selectedPrefixes[i] = poolIdx;
+        const sel = document.getElementById('prefix-' + i);
+        if (sel) { sel.value = poolIdx; }
+      }
+    }
+    refreshAffixSlots('prefix');
+  }
+
+  if (params.s) {
+    const sufIds = params.s.split('.').map(Number);
+    for (let i = 0; i < sufIds.length && i < state.selectedSuffixes.length; i++) {
+      const affix = suffixes[sufIds[i]];
+      if (!affix) continue;
+      const poolIdx = validSuf.indexOf(affix);
+      if (poolIdx >= 0) {
+        state.selectedSuffixes[i] = poolIdx;
+        const sel = document.getElementById('suffix-' + i);
+        if (sel) { sel.value = poolIdx; }
+      }
+    }
+    refreshAffixSlots('suffix');
+  }
+
+  renderPreview();
+}
+
+// --- Init ---
+console.log('Data loaded. Prefixes:', prefixes.length, 'Suffixes:', suffixes.length);
+loadFromHash();
+</script>
+</body>
+</html>
