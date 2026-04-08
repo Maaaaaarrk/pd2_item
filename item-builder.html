@@ -1578,6 +1578,7 @@ function renderPreview() {
     html += '<h4>Roll Odds (alvl ' + alvl + ', ' + affixCountDesc + ', ' + eligPre.length + ' prefixes / ' + eligSuf.length + ' suffixes in pool)</h4>';
 
     // Affix count probabilities
+    const slotDist = getSlotDistribution(state.quality, state.category, state.ilvl);
     const countProbs = {};
     for (const config of slotDist) {
       const total = config.pre + config.suf;
@@ -1618,7 +1619,6 @@ function renderPreview() {
     }
 
     // Combined odds using slot distribution model
-    const slotDist = getSlotDistribution(state.quality, state.category, state.ilvl);
     let combinedProb = computeCombinedProb(slotDist, preProbs, sufProbs);
 
     // Ethereal odds
