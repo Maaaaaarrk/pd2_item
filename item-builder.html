@@ -67,6 +67,13 @@
   .odds-combined { margin-top: 10px; padding-top: 8px; border-top: 1px solid #333; text-align: center; }
   .odds-combined .label { color: #a0a0b0; font-size: 0.8rem; }
   .odds-combined .value { color: #c4a84f; font-size: 1.1rem; font-family: 'Exocet', serif; }
+
+  .lld-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #333; }
+  .lld-section .lld-header { color: #c4a84f; font-size: 0.85rem; margin-bottom: 6px; font-family: 'Exocet', serif; }
+  .lld-section .lld-eligible { color: #44cc44; font-size: 0.9rem; font-weight: bold; }
+  .lld-section .lld-ineligible { color: #cc4444; font-size: 0.9rem; }
+  .lld-section .lld-odds { color: #a0a0b0; font-size: 0.8rem; margin-top: 4px; }
+  .lld-section .lld-odds .lld-value { color: #44cc44; font-family: 'Exocet', serif; font-size: 1rem; }
 </style>
 <script src="data/js/Armor.js"></script>
 <script src="data/js/Weapons.js"></script>
@@ -1023,6 +1030,70 @@ function renderPreview() {
     const combinedRatio = combinedProb > 0 ? Math.round(1 / combinedProb) : 0;
     html += '<div class="value">' + oddsText(combinedRatio) + '</div>';
     html += '</div>';
+
+    // LLD Smart Mode: check if all selected affixes + base item have levelreq <= 30
+    const LLD_MAX_LEVEL = 30;
+    const baseLevelReq = parseInt(item.levelreq) || 0;
+    const allSelectedAffixes = [...selPre, ...selSuf];
+    const selectedLevelReqs = allSelectedAffixes.map(a => parseInt(a.levelreq) || 0);
+    const allSelectedLLD = selectedLevelReqs.every(r => r <= LLD_MAX_LEVEL) && baseLevelReq <= LLD_MAX_LEVEL;
+
+    if (allSelectedLLD && allSelectedAffixes.length > 0) {
+      html += '<div class="lld-section">';
+      html += '<div class="lld-header">LLD Eligibility (Req Level &le; ' + LLD_MAX_LEVEL + ')</div>';
+
+      const isJewelRare2 = state.quality === 'rare' && state.category === 'jewel';
+      if (isJewelRare2) {
+        const totalSlots = 4;
+        const usedSlots = selPre.length + selSuf.length;
+        const wildRemaining = totalSlots - usedSlots;
+        if (wildRemaining > 0) {
+          const lldEligPre = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
+          const lldEligSuf = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
+          const lldPreFreq = lldEligPre.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+          const lldSufFreq = lldEligSuf.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+          const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
+          const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
+          const pWildLLD = 0.5 * pPreLLD + 0.5 * pSufLLD;
+          const pAllWildLLD = Math.pow(pWildLLD, wildRemaining);
+          html += '<div class="lld-odds">' + lldEligPre.length + ' of ' + eligPre.length + ' eligible prefixes are LLD (' + (pPreLLD * 100).toFixed(1) + '% by weight)</div>';
+          html += '<div class="lld-odds">' + lldEligSuf.length + ' of ' + eligSuf.length + ' eligible suffixes are LLD (' + (pSufLLD * 100).toFixed(1) + '% by weight)</div>';
+          html += '<div class="lld-odds">Remaining random slots: ' + wildRemaining + '</div>';
+          html += '<div class="lld-odds">Chance remaining affixes keep item LLD-eligible: <span class="lld-value">' + (pAllWildLLD * 100).toFixed(2) + '%</span></div>';
+        } else {
+          html += '<div class="lld-eligible">All affix slots defined - item is LLD eligible!</div>';
+        }
+      } else {
+        const maxPreSlots = state.quality === 'rare' ? 3 : 1;
+        const maxSufSlots = state.quality === 'rare' ? 3 : 1;
+        const remainingPreSlots = maxPreSlots - selPre.length;
+        const remainingSufSlots = maxSufSlots - selSuf.length;
+
+        if (remainingPreSlots === 0 && remainingSufSlots === 0) {
+          html += '<div class="lld-eligible">All affix slots defined - item is LLD eligible!</div>';
+        } else {
+          const lldEligPre = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
+          const lldEligSuf = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
+          const lldPreFreq = lldEligPre.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+          const lldSufFreq = lldEligSuf.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+          const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
+          const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
+          const pAllPreLLD = Math.pow(pPreLLD, remainingPreSlots);
+          const pAllSufLLD = Math.pow(pSufLLD, remainingSufSlots);
+          const pLLD = pAllPreLLD * pAllSufLLD;
+
+          if (remainingPreSlots > 0) {
+            html += '<div class="lld-odds">' + lldEligPre.length + ' of ' + eligPre.length + ' eligible prefixes are LLD (' + (pPreLLD * 100).toFixed(1) + '% by weight)</div>';
+          }
+          if (remainingSufSlots > 0) {
+            html += '<div class="lld-odds">' + lldEligSuf.length + ' of ' + eligSuf.length + ' eligible suffixes are LLD (' + (pSufLLD * 100).toFixed(1) + '% by weight)</div>';
+          }
+          html += '<div class="lld-odds">Remaining random slots: ' + remainingPreSlots + ' prefix, ' + remainingSufSlots + ' suffix</div>';
+          html += '<div class="lld-odds">Chance remaining affixes keep item LLD-eligible: <span class="lld-value">' + (pLLD * 100).toFixed(2) + '%</span></div>';
+        }
+      }
+      html += '</div>';
+    }
 
     html += '</div>';
   }
