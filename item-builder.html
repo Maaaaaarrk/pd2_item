@@ -867,21 +867,36 @@ function computeFuzzyOdds() {
 
   var allEligible = selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); });
 
+  var baseLevelReq = parseInt(item.levelreq) || 0;
+  var baseLLD = baseLevelReq <= 30;
+
   if (state.quality === 'magic') {
     var totalPossible = eligPre.length * eligSuf.length;
     var totalValid = 0;
+    var totalValidLLD = 0;
+    var totalLLD = 0;
     for (var pi2 = 0; pi2 < eligPre.length; pi2++) {
       for (var xi2 = 0; xi2 < eligSuf.length; xi2++) {
         var hits = 0;
         if (selPreSet.has(pi2)) hits++;
         if (selSufSet.has(xi2)) hits++;
-        if (hits >= minMatch) totalValid++;
+        var isMatchValid = hits >= minMatch;
+        var comboLLD = baseLLD && (parseInt(eligPre[pi2].levelreq) || 0) <= 30 && (parseInt(eligSuf[xi2].levelreq) || 0) <= 30;
+        if (comboLLD) totalLLD++;
+        if (isMatchValid) {
+          totalValid++;
+          if (comboLLD) totalValidLLD++;
+        }
       }
     }
     return {
       validCombinations: totalValid,
       totalCombinations: totalPossible,
       percentage: totalPossible > 0 ? (totalValid / totalPossible * 100) : 0,
+      lldValidCombinations: totalValidLLD,
+      lldTotalCombinations: totalLLD,
+      lldPercentage: totalValid > 0 ? (totalValidLLD / totalValid * 100) : 0,
+      baseLLD: baseLLD,
       minMatch: minMatch,
       selectedCount: selectedAffixes.length,
       allEligible: allEligible,
@@ -889,10 +904,10 @@ function computeFuzzyOdds() {
     };
   }
 
-  return computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots);
+  return computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots, baseLLD);
 }
 
-function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots) {
+function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots, baseLLD) {
   var CAP = 500000;
 
   function getGroupUniqueSubsets(pool, size) {
@@ -930,6 +945,8 @@ function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet
 
     var totalPossibleJ = 0;
     var totalValidJ = 0;
+    var totalValidLLDJ = 0;
+    var totalLLDJ = 0;
     var cappedJ = false;
 
     function recurseJewel(start, current, usedGroups, pCount, sCount) {
@@ -937,12 +954,18 @@ function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet
         if (pCount >= 1 && sCount >= 1) {
           totalPossibleJ++;
           var hits = 0;
+          var comboLLD = baseLLD;
           for (var ci2 = 0; ci2 < current.length; ci2++) {
             var c = current[ci2];
             if (c.type === 'prefix' && selPreSet.has(c.idx)) hits++;
             if (c.type === 'suffix' && selSufSet.has(c.idx)) hits++;
+            if (comboLLD && (parseInt(c.affix.levelreq) || 0) > 30) comboLLD = false;
           }
-          if (hits >= minMatch) totalValidJ++;
+          if (comboLLD) totalLLDJ++;
+          if (hits >= minMatch) {
+            totalValidJ++;
+            if (comboLLD) totalValidLLDJ++;
+          }
         }
         return;
       }
@@ -970,6 +993,10 @@ function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet
       validCombinations: totalValidJ,
       totalCombinations: totalPossibleJ,
       percentage: totalPossibleJ > 0 ? (totalValidJ / totalPossibleJ * 100) : 0,
+      lldValidCombinations: totalValidLLDJ,
+      lldTotalCombinations: totalLLDJ,
+      lldPercentage: totalValidJ > 0 ? (totalValidLLDJ / totalValidJ * 100) : 0,
+      baseLLD: baseLLD,
       minMatch: minMatch,
       selectedCount: selectedAffixes.length,
       allEligible: selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); }),
@@ -983,29 +1010,46 @@ function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet
   var cappedR = preCombos.length > CAP || sufCombos.length > CAP;
   var totalPossibleR = preCombos.length * sufCombos.length;
   var totalValidR = 0;
+  var totalValidLLDR = 0;
+  var totalLLDR = 0;
 
-  var preHitCounts = preCombos.map(function(combo) {
+  // Precompute hit counts and LLD status for prefix combos
+  var preInfo = preCombos.map(function(combo) {
     var hits = 0;
+    var lld = baseLLD;
     for (var ci3 = 0; ci3 < combo.length; ci3++) {
       if (selPreSet.has(combo[ci3])) hits++;
+      if (lld && (parseInt(eligPre[combo[ci3]].levelreq) || 0) > 30) lld = false;
     }
-    return hits;
+    return { hits: hits, lld: lld };
   });
 
-  var sufHitDist = {};
+  // Build suffix distribution keyed by (hits, lld)
+  var sufDist = {};
   for (var sci = 0; sci < sufCombos.length; sci++) {
     var hitsS = 0;
+    var lldS = true;
     for (var ci4 = 0; ci4 < sufCombos[sci].length; ci4++) {
       if (selSufSet.has(sufCombos[sci][ci4])) hitsS++;
+      if (lldS && (parseInt(eligSuf[sufCombos[sci][ci4]].levelreq) || 0) > 30) lldS = false;
     }
-    sufHitDist[hitsS] = (sufHitDist[hitsS] || 0) + 1;
+    var key = hitsS + ':' + (lldS ? '1' : '0');
+    sufDist[key] = (sufDist[key] || 0) + 1;
   }
 
-  for (var phi = 0; phi < preHitCounts.length; phi++) {
-    var preHits = preHitCounts[phi];
+  for (var phi = 0; phi < preInfo.length; phi++) {
+    var preHits = preInfo[phi].hits;
+    var preLLD = preInfo[phi].lld;
     var needSuf = Math.max(0, minMatch - preHits);
-    for (var sh in sufHitDist) {
-      if (parseInt(sh) >= needSuf) totalValidR += sufHitDist[sh];
+    for (var sk in sufDist) {
+      var parts = sk.split(':');
+      var sufHits = parseInt(parts[0]);
+      var sufLLD = parts[1] === '1';
+      if (sufHits >= needSuf) {
+        totalValidR += sufDist[sk];
+        if (preLLD && sufLLD) totalValidLLDR += sufDist[sk];
+      }
+      if (preLLD && sufLLD) totalLLDR += sufDist[sk];
     }
   }
 
@@ -1013,6 +1057,10 @@ function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet
     validCombinations: totalValidR,
     totalCombinations: totalPossibleR,
     percentage: totalPossibleR > 0 ? (totalValidR / totalPossibleR * 100) : 0,
+    lldValidCombinations: totalValidLLDR,
+    lldTotalCombinations: totalLLDR,
+    lldPercentage: totalValidR > 0 ? (totalValidLLDR / totalValidR * 100) : 0,
+    baseLLD: baseLLD,
     minMatch: minMatch,
     selectedCount: selectedAffixes.length,
     allEligible: selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); }),
@@ -1227,6 +1275,25 @@ function renderPreview() {
         html += '<div class="fuzzy-stat">Approximately <span class="val">' + oddsText(ratio) + '</span></div>';
       }
       html += '</div>';
+
+      // LLD section for fuzzy mode
+      if (fuzzyResult.baseLLD) {
+        html += '<div class="lld-section">';
+        html += '<div class="lld-header">LLD Eligibility (Req Level &le; 30)</div>';
+        if (fuzzyResult.lldValidCombinations > 0) {
+          html += '<div class="lld-odds">LLD-eligible matching combinations: <span class="lld-value">' + shortNum(fuzzyResult.lldValidCombinations) + '</span> of ' + shortNum(fuzzyResult.validCombinations) + '</div>';
+          html += '<div class="lld-odds">Chance a matching combo is also LLD: <span class="lld-value">' + fuzzyResult.lldPercentage.toFixed(2) + '%</span></div>';
+          var overallLLD = fuzzyResult.totalCombinations > 0 ? (fuzzyResult.lldValidCombinations / fuzzyResult.totalCombinations * 100) : 0;
+          html += '<div class="lld-odds">Overall LLD + match chance: <span class="lld-value">' + overallLLD.toFixed(4) + '%</span></div>';
+          if (overallLLD > 0) {
+            var lldRatio = Math.round(100 / overallLLD);
+            html += '<div class="lld-odds">Approximately <span class="lld-value">' + oddsText(lldRatio) + '</span></div>';
+          }
+        } else {
+          html += '<div class="lld-ineligible">No matching combinations are LLD-eligible</div>';
+        }
+        html += '</div>';
+      }
     } else {
       html += '<div style="color:#555; margin-top: 20px;">Select at least one affix to see combination odds</div>';
     }
