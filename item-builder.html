@@ -48,6 +48,14 @@
   .item-preview .base-name { color: #ffff44; font-size: 0.95rem; margin-bottom: 10px; }
   .reroll-btn { cursor: pointer; font-size: 1rem; color: #888; margin-left: 6px; vertical-align: middle; }
   .reroll-btn:hover { color: #ffff44; }
+  .odds-section { margin-top: 12px; text-align: left; display: inline-block; width: 100%; }
+  .odds-section h4 { color: #c4a84f; font-size: 0.85rem; margin-bottom: 8px; font-family: 'Exocet', serif; }
+  .odds-row { display: flex; align-items: center; justify-content: space-between; margin: 4px 0; font-size: 0.8rem; }
+  .odds-label { color: #a0a0b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .odds-pct { color: #e0e0e0; min-width: 70px; text-align: right; font-size: 0.75rem; white-space: nowrap; margin-left: 8px; }
+  .odds-combined { margin-top: 10px; padding-top: 8px; border-top: 1px solid #333; text-align: center; }
+  .odds-combined .label { color: #a0a0b0; font-size: 0.8rem; }
+  .odds-combined .value { color: #c4a84f; font-size: 1.1rem; font-family: 'Exocet', serif; }
 </style>
 <script src="data/js/Armor.js"></script>
 <script src="data/js/Weapons.js"></script>
@@ -57,6 +65,7 @@
 <script src="data/js/WeaponClass.js"></script>
 <script src="data/js/RarePrefix.js"></script>
 <script src="data/js/RareSuffix.js"></script>
+<script src="data/js/Properties.js"></script>
 </head>
 <body>
 <h1>PD2 Theoretical Item Builder</h1>
@@ -218,6 +227,7 @@ function getValidAffixes(affixList, item, quality) {
   const { fullChain, direct } = getItemTypeSets(item);
 
   return affixList.filter(a => {
+    if (a.frequency === '0') return false;
     if (quality === 'rare' && a.rare !== '1') return false;
     return affixMatchesItem(a, fullChain, direct);
   });
@@ -506,12 +516,7 @@ function affixDescription(affix) {
     const min = affix['mod' + i + 'min'];
     const max = affix['mod' + i + 'max'];
     const param = affix['mod' + i + 'param'];
-    let desc = code;
-    if (param) desc += '(' + param + ')';
-    if (min && max) {
-      desc += ' [' + min + (min !== max ? '-' + max : '') + ']';
-    }
-    parts.push(desc);
+    parts.push(formatMod(code, param, min, max));
   }
   return parts.join(', ');
 }
@@ -615,63 +620,185 @@ function renderPreview() {
   html += '<div>Item Level: ' + item.level + '</div>';
   html += '</div>';
 
+  // Odds section
+  if (selPre.length > 0 || selSuf.length > 0) {
+    const preTotalFreq = validPrefixes.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const sufTotalFreq = validSuffixes.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+
+    html += '<div class="separator"></div>';
+    html += '<div class="odds-section">';
+    html += '<h4>Roll Odds</h4>';
+
+    // Rare: 3 prefix slots, 3 suffix slots, all always roll
+    // Magic: 1 prefix slot, 1 suffix slot, both always roll
+    // Selected affixes can land in any slot (order doesn't matter)
+    const preSlots = state.quality === 'rare' ? 3 : 1;
+    const sufSlots = state.quality === 'rare' ? 3 : 1;
+
+    // Individual affix odds (per single roll from pool)
+    const preProbs = [];
+    for (const a of selPre) {
+      const freq = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      const prob = preTotalFreq > 0 ? freq / preTotalFreq : 0;
+      preProbs.push(prob);
+      const ratio = prob > 0 ? Math.round(1 / prob) : 0;
+      html += '<div class="odds-row">';
+      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + '</span>';
+      html += '<span class="odds-pct">' + oddsText(ratio) + '</span>';
+      html += '</div>';
+    }
+
+    const sufProbs = [];
+    for (const a of selSuf) {
+      const freq = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      const prob = sufTotalFreq > 0 ? freq / sufTotalFreq : 0;
+      sufProbs.push(prob);
+      const ratio = prob > 0 ? Math.round(1 / prob) : 0;
+      html += '<div class="odds-row">';
+      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + '</span>';
+      html += '<span class="odds-pct">' + oddsText(ratio) + '</span>';
+      html += '</div>';
+    }
+
+    // Combined odds: K specific affixes must appear somewhere in N slots
+    // P ≈ P(N,K) × product(pi)  where P(N,K) = N!/(N-K)!
+    // This accounts for the affixes landing in any slot order
+    function permutations(n, k) {
+      let result = 1;
+      for (let i = 0; i < k; i++) result *= (n - i);
+      return result;
+    }
+
+    let combinedProb = 1;
+    if (preProbs.length > 0) {
+      let p = permutations(preSlots, preProbs.length);
+      for (const prob of preProbs) p *= prob;
+      combinedProb *= p;
+    }
+    if (sufProbs.length > 0) {
+      let p = permutations(sufSlots, sufProbs.length);
+      for (const prob of sufProbs) p *= prob;
+      combinedProb *= p;
+    }
+
+    // Combined odds
+    html += '<div class="odds-combined">';
+    html += '<div class="label">Combined chance for this exact roll</div>';
+    const combinedRatio = combinedProb > 0 ? Math.round(1 / combinedProb) : 0;
+    html += '<div class="value">' + oddsText(combinedRatio) + '</div>';
+    html += '</div>';
+
+    html += '</div>';
+  }
+
   preview.innerHTML = html;
   stateToHash();
 }
 
 // --- Mod code -> human-readable text ---
-const MOD_NAMES = {
+// Build property lookup from Properties data
+const propMap = {};
+for (const p of PROPERTIES_DATA) {
+  if (p.code) propMap[p.code] = p;
+}
+
+// Display templates: code -> format string with {range} and {param}
+// These override the auto-generated text from Properties for cleaner display
+const MOD_DISPLAY = {
   'ac%': '+{range}% Enhanced Defense',
   'ac': '+{range} Defense',
+  'ac-miss': '+{range} Defense vs. Missile',
+  'ac-hth': '+{range} Defense vs. Melee',
   'str': '+{range} to Strength',
   'dex': '+{range} to Dexterity',
   'vit': '+{range} to Vitality',
   'enr': '+{range} to Energy',
   'hp': '+{range} to Life',
+  'hp%': '+{range}% to Life',
   'mana': '+{range} to Mana',
+  'mana%': '+{range}% to Mana',
   'att': '+{range} to Attack Rating',
   'att%': '+{range}% to Attack Rating',
+  'block': '+{range}% Increased Chance of Blocking',
   'dmg%': '+{range}% Enhanced Damage',
   'dmg-min': '+{range} to Minimum Damage',
   'dmg-max': '+{range} to Maximum Damage',
-  'dmg-norm': '+{range} to Damage',
+  'dmg-norm': 'Adds {range} Damage',
+  'dmg': '+{range} Damage',
   'red-dmg': 'Damage Reduced by {range}',
   'red-dmg%': 'Damage Reduced by {range}%',
   'red-mag': 'Magic Damage Reduced by {range}',
-  'res-fire': '+{range}% Fire Resistance',
-  'res-ltng': '+{range}% Lightning Resistance',
-  'res-cold': '+{range}% Cold Resistance',
-  'res-pois': '+{range}% Poison Resistance',
-  'res-all': '+{range}% All Resistances',
+  'res-fire': 'Fire Resist +{range}%',
+  'res-fire-max': '+{range}% to Maximum Fire Resist',
+  'res-ltng': 'Lightning Resist +{range}%',
+  'res-ltng-max': '+{range}% to Maximum Lightning Resist',
+  'res-cold': 'Cold Resist +{range}%',
+  'res-cold-max': '+{range}% to Maximum Cold Resist',
+  'res-pois': 'Poison Resist +{range}%',
+  'res-pois-max': '+{range}% to Maximum Poison Resist',
+  'res-mag': 'Magic Resist +{range}%',
+  'res-all': 'All Resistances +{range}',
+  'res-all-max': '+{range}% to All Maximum Resistances',
+  'abs-fire%': '+{range}% Fire Absorb',
+  'abs-fire': '+{range} Fire Absorb',
+  'abs-ltng%': '+{range}% Lightning Absorb',
+  'abs-ltng': '+{range} Lightning Absorb',
+  'abs-cold%': '+{range}% Cold Absorb',
+  'abs-cold': '+{range} Cold Absorb',
+  'abs-mag%': '+{range}% Magic Absorb',
+  'abs-mag': '+{range} Magic Absorb',
+  'swing1': '+{range}% Increased Attack Speed',
   'swing2': '+{range}% Increased Attack Speed',
+  'swing3': '+{range}% Increased Attack Speed',
+  'move1': '+{range}% Faster Run/Walk',
   'move2': '+{range}% Faster Run/Walk',
+  'move3': '+{range}% Faster Run/Walk',
+  'cast1': '+{range}% Faster Cast Rate',
   'cast2': '+{range}% Faster Cast Rate',
+  'cast3': '+{range}% Faster Cast Rate',
+  'block1': '+{range}% Faster Block Rate',
   'block2': '+{range}% Faster Block Rate',
-  'hit-recover2': '+{range}% Faster Hit Recovery',
-  'gold%': '+{range}% Extra Gold from Monsters',
-  'mag%': '+{range}% Better Chance of Getting Magic Items',
+  'block3': '+{range}% Faster Block Rate',
+  'balance1': '+{range}% Faster Hit Recovery',
+  'balance2': '+{range}% Faster Hit Recovery',
+  'balance3': '+{range}% Faster Hit Recovery',
+  'gold%': '{range}% Extra Gold from Monsters',
+  'mag%': '{range}% Better Chance of Getting Magic Items',
   'regen': 'Replenish Life +{range}',
   'regen-mana': 'Regenerate Mana {range}%',
-  'manasteal': '+{range}% Mana Stolen per Hit',
-  'lifesteal': '+{range}% Life Stolen per Hit',
+  'regen-stam': 'Heal Stamina Plus {range}%',
+  'stam': '+{range} Maximum Stamina',
+  'manasteal': '{range}% Mana Stolen per Hit',
+  'lifesteal': '{range}% Life Stolen per Hit',
   'light': '+{range} to Light Radius',
   'thorns': 'Attacker Takes Damage of {range}',
+  'light-thorns': 'Attacker Takes Lightning Damage of {range}',
   'knock': 'Knockback',
   'sock': '{range} Sockets',
-  'dur': '+{range}% Enhanced Durability',
+  'dur': 'Durability: +{range}',
+  'dur%': 'Increase Maximum Durability {range}%',
   'indestruct': 'Indestructible',
-  'crush': '+{range}% Chance of Crushing Blow',
-  'deadly': '+{range}% Deadly Strike',
-  'openwounds': '+{range}% Chance of Open Wounds',
-  'fire-min': '+{range} Fire Damage (min)',
-  'fire-max': '+{range} Fire Damage (max)',
-  'ltng-min': '+{range} Lightning Damage (min)',
-  'ltng-max': '+{range} Lightning Damage (max)',
-  'cold-min': '+{range} Cold Damage (min)',
-  'cold-max': '+{range} Cold Damage (max)',
-  'pois-min': '+{range} Poison Damage (min)',
-  'pois-max': '+{range} Poison Damage (max)',
-  'balance2': '+{range}% Faster Block Rate',
+  'crush': '{range}% Chance of Crushing Blow',
+  'deadly': '{range}% Deadly Strike',
+  'openwounds': '{range}% Chance of Open Wounds',
+  'slow': 'Slows Target by {range}%',
+  'fire-min': '+{range} to Fire Damage (min)',
+  'fire-max': '+{range} to Fire Damage (max)',
+  'ltng-min': '+{range} to Lightning Damage (min)',
+  'ltng-max': '+{range} to Lightning Damage (max)',
+  'cold-min': '+{range} to Cold Damage (min)',
+  'cold-max': '+{range} to Cold Damage (max)',
+  'cold-len': 'Cold Duration: {range} frames',
+  'pois-min': '+{range} to Poison Damage (min)',
+  'pois-max': '+{range} to Poison Damage (max)',
+  'pois-len': 'Poison Duration: {range} frames',
+  'dmg-fire': 'Adds {range} Fire Damage',
+  'dmg-ltng': 'Adds {range} Lightning Damage',
+  'dmg-cold': 'Adds {range} Cold Damage',
+  'dmg-pois': 'Adds {range} Poison Damage',
+  'dmg-mag': 'Adds {range} Magic Damage',
+  'dmg-elem': 'Adds {range} Elemental Damage',
+  'dmg-throw': 'Adds {range} Throwing Damage',
   'stupidity': 'Hit Blinds Target +{range}',
   'freeze': 'Freezes Target +{range}',
   'ease': 'Requirements -{range}%',
@@ -679,10 +806,12 @@ const MOD_NAMES = {
   'half-freeze': 'Half Freeze Duration',
   'nofreeze': 'Cannot Be Frozen',
   'howl': 'Hit Causes Monster to Flee {range}%',
+  'ignore-ac': 'Ignore Target\'s Defense',
+  'reduce-ac': '-{range}% Target Defense',
   'skill': '+{range} to {param}',
   'skilltab': '+{range} to Skill Tab {param}',
   'allskills': '+{range} to All Skills',
-  'oskill': '+{range} to {param} (oskill)',
+  'oskill': '+{range} to {param}',
   'charged': 'Level {param} Charged ({range} charges)',
   'aura': 'Level {param} Aura When Equipped',
   'att-skill': '{range}% Chance to Cast Level {param} on Attack',
@@ -691,36 +820,146 @@ const MOD_NAMES = {
   'kill-skill': '{range}% Chance to Cast Level {param} on Kill',
   'death-skill': '{range}% Chance to Cast Level {param} on Death',
   'levelup-skill': '{range}% Chance to Cast Level {param} on Level Up',
-  'rep-dur': 'Repairs Durability',
+  'rep-dur': 'Repairs 1 Durability in {range} Seconds',
   'rep-quant': 'Replenishes Quantity',
-  'pierce': '+{range}% Pierce Attack',
+  'pierce': 'Piercing Attack +{range}%',
   'dmg-demon': '+{range}% Damage to Demons',
   'dmg-undead': '+{range}% Damage to Undead',
-  'att-demon': '+{range} to AR vs. Demons',
-  'att-undead': '+{range} to AR vs. Undead',
-  'abs-fire': '+{range} Fire Absorb',
-  'abs-ltng': '+{range} Lightning Absorb',
-  'abs-cold': '+{range} Cold Absorb',
-  'abs-fire%': '+{range}% Fire Absorb',
-  'abs-ltng%': '+{range}% Lightning Absorb',
-  'abs-cold%': '+{range}% Cold Absorb',
-  'dmg-ac': '+{range} Damage to Mana',
+  'att-demon': '+{range} to Attack Rating against Demons',
+  'att-undead': '+{range} to Attack Rating against Undead',
+  'dmg-to-mana': '{range}% Damage Taken Goes to Mana',
+  'dmg-ac': '-{range} to Monster Defense Per Hit',
   'extra-fire': '+{range}% to Fire Skill Damage',
   'extra-ltng': '+{range}% to Lightning Skill Damage',
   'extra-cold': '+{range}% to Cold Skill Damage',
   'extra-pois': '+{range}% to Poison Skill Damage',
+  'extra-magi': '+{range}% to Magic Skill Damage',
+  'pierce-fire': '-{range}% to Enemy Fire Resistance',
+  'pierce-ltng': '-{range}% to Enemy Lightning Resistance',
+  'pierce-cold': '-{range}% to Enemy Cold Resistance',
+  'pierce-pois': '-{range}% to Enemy Poison Resistance',
+  'all-stats': '+{range} to All Attributes',
+  'addxp': '+{range}% to Experience Gained',
+  'heal-kill': '+{range} Life after each Kill',
+  'mana-kill': '+{range} Mana after each Kill',
+  'demon-heal': '+{range} Life after each Demon Kill',
+  'bloody': 'Extra Blood',
+  'rip': 'Slain Monsters Rest in Peace',
+  'kick': '+{range} Kick Damage',
+  'magicarrow': 'Fires Magic Arrows',
+  'explosivearrow': 'Fires Explosive Arrows',
+  'res-pois-len': 'Poison Length Reduced by {range}%',
+  'stamdrain': '+{range}% Stamina Drain',
+  'reanimate': '{range}% Reanimate As: {param}',
+  'stack': '+{range} to Stack Size',
+  'ethereal': 'Ethereal',
+  'corrupt': 'Corrupted',
+  'splash': 'Melee Splash',
+  'ama': '+{range} to Amazon Skill Levels',
+  'pal': '+{range} to Paladin Skill Levels',
+  'nec': '+{range} to Necromancer Skill Levels',
+  'sor': '+{range} to Sorceress Skill Levels',
+  'bar': '+{range} to Barbarian Skill Levels',
+  'dru': '+{range} to Druid Skill Levels',
+  'ass': '+{range} to Assassin Skill Levels',
+  'fireskill': '+{range} to Fire Skills',
+  'coldskill': '+{range} to Cold Skills',
+  'ltngskill': '+{range} to Lightning Skills',
+  'poisskill': '+{range} to Poison Skills',
+  'magskill': '+{range} to Magic Skills',
+  'levelreq': 'Required Level: {range}',
+};
+
+// Per-level properties: param is in 8ths per level
+const PER_LEVEL = {
+  'ac/lvl': '+{val} Defense (Based on Character Level)',
+  'ac%/lvl': '+{val}% Enhanced Defense (Based on Character Level)',
+  'hp/lvl': '+{val} to Life (Based on Character Level)',
+  'mana/lvl': '+{val} to Mana (Based on Character Level)',
+  'dmg/lvl': '+{val} to Maximum Damage (Based on Character Level)',
+  'dmg%/lvl': '+{val}% Enhanced Maximum Damage (Based on Character Level)',
+  'str/lvl': '+{val} to Strength (Based on Character Level)',
+  'dex/lvl': '+{val} to Dexterity (Based on Character Level)',
+  'enr/lvl': '+{val} to Energy (Based on Character Level)',
+  'vit/lvl': '+{val} to Vitality (Based on Character Level)',
+  'att/lvl': '+{val} to Attack Rating (Based on Character Level)',
+  'att%/lvl': '+{val}% to Attack Rating (Based on Character Level)',
+  'thorns/lvl': '+{val} Damage to Attacker (Based on Character Level)',
+  'gold%/lvl': '+{val}% Gold Find (Based on Character Level)',
+  'mag%/lvl': '+{val}% Magic Find (Based on Character Level)',
+  'dmg-cold/lvl': '+{val} Cold Damage (Based on Character Level)',
+  'dmg-fire/lvl': '+{val} Fire Damage (Based on Character Level)',
+  'dmg-ltng/lvl': '+{val} Lightning Damage (Based on Character Level)',
+  'dmg-pois/lvl': '+{val} Poison Damage (Based on Character Level)',
+  'res-cold/lvl': '+{val}% Cold Resist (Based on Character Level)',
+  'res-fire/lvl': '+{val}% Fire Resist (Based on Character Level)',
+  'res-ltng/lvl': '+{val}% Lightning Resist (Based on Character Level)',
+  'res-pois/lvl': '+{val}% Poison Resist (Based on Character Level)',
+  'abs-cold/lvl': '+{val} Cold Absorb (Based on Character Level)',
+  'abs-fire/lvl': '+{val} Fire Absorb (Based on Character Level)',
+  'abs-ltng/lvl': '+{val} Lightning Absorb (Based on Character Level)',
+  'crush/lvl': '+{val}% Crushing Blow (Based on Character Level)',
+  'wounds/lvl': '+{val}% Open Wounds (Based on Character Level)',
+  'deadly/lvl': '+{val}% Deadly Strike (Based on Character Level)',
+  'kick/lvl': '+{val} Kick Damage (Based on Character Level)',
+  'regen-stam/lvl': '+{val}% Stamina Regen (Based on Character Level)',
+  'stam/lvl': '+{val} Stamina (Based on Character Level)',
+  'dmg-dem/lvl': '+{val}% Damage to Demons (Based on Character Level)',
+  'dmg-und/lvl': '+{val}% Damage to Undead (Based on Character Level)',
+  'att-dem/lvl': '+{val} Attack Rating vs. Demons (Based on Character Level)',
+  'att-und/lvl': '+{val} Attack Rating vs. Undead (Based on Character Level)',
 };
 
 function formatMod(code, param, min, max) {
-  const template = MOD_NAMES[code];
-  if (!template) {
-    let s = code;
-    if (param) s += '(' + param + ')';
-    if (min && max) s += ': ' + min + (min !== max ? '-' + max : '');
-    return s;
+  // Per-level properties: param is in 8ths (or 1s for att/lvl)
+  if (PER_LEVEL[code]) {
+    const divisor = (code === 'att/lvl' || code === 'att-dem/lvl' || code === 'att-und/lvl') ? 1 : 8;
+    const perLevel = param ? (parseInt(param) / divisor) : 0;
+    const maxVal = Math.floor(perLevel * 99);
+    const valStr = perLevel % 1 === 0 ? String(maxVal) : maxVal.toFixed(1);
+    return PER_LEVEL[code].replace('{val}', valStr);
   }
-  const range = min && max ? (min === max ? min : min + '-' + max) : '';
-  return template.replace('{range}', range).replace('{param}', param || '');
+
+  // Standard display template
+  const template = MOD_DISPLAY[code];
+  if (template) {
+    const range = min && max ? (min === max ? min : min + '-' + max) : (min || max || '');
+    return template.replace('{range}', range).replace('{param}', param || '');
+  }
+
+  // Fallback: use *desc from Properties data
+  const prop = propMap[code];
+  if (prop && prop['*desc']) {
+    let desc = prop['*desc'];
+    if (min || max) {
+      const range = min && max ? (min === max ? min : min + '-' + max) : (min || max);
+      desc += ': ' + range;
+    }
+    if (param) desc += ' (' + param + ')';
+    return desc;
+  }
+
+  // Last resort: raw code
+  let s = code;
+  if (param) s += '(' + param + ')';
+  if (min || max) {
+    const range = min && max ? (min === max ? min : min + '-' + max) : (min || max);
+    s += ': ' + range;
+  }
+  return s;
+}
+
+function oddsText(ratio) {
+  if (ratio <= 0) return 'N/A';
+  return '1 in ' + shortNum(ratio);
+}
+
+function shortNum(n) {
+  if (n >= 1e12) return (n / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+  if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  return n.toString();
 }
 
 function esc(s) {
