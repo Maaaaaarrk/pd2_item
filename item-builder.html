@@ -33,6 +33,7 @@
   .quality-btns button:hover { border-color: #c4a84f; }
   .quality-btns button.active-magic { border-color: #4169e1; background: #1a3a7a; color: #6495ed; }
   .quality-btns button.active-rare { border-color: #cccc00; background: #3a3a0a; color: #ffff44; }
+  .quality-btns button.active-crafted { border-color: #ff8c00; background: #3a2a0a; color: #ffa500; }
   .affix-section { margin-top: 14px; }
   .affix-section h3 { font-size: 0.95rem; color: #8899aa; margin-bottom: 6px; }
   .affix-slot { margin-bottom: 8px; position: relative; }
@@ -42,6 +43,7 @@
   .item-preview .item-name { font-size: 1.3rem; font-weight: bold; margin-bottom: 12px; font-family: 'Exocet', serif; letter-spacing: 1px; }
   .item-preview .item-name.magic { color: #6495ed; }
   .item-preview .item-name.rare { color: #ffff44; }
+  .item-preview .item-name.crafted { color: #ffa500; }
   .item-preview .base-stats { color: #8888aa; font-size: 0.9rem; margin-bottom: 10px; }
   .item-preview .base-stats div { margin: 2px 0; }
   .item-preview .affix-stats { color: #4169e1; font-size: 0.9rem; text-align: left; display: inline-block; }
@@ -144,6 +146,7 @@
     <div class="quality-btns">
       <button id="btn-magic" disabled onclick="setQuality('magic')">Magic</button>
       <button id="btn-rare" disabled onclick="setQuality('rare')">Rare</button>
+      <button id="btn-crafted" disabled onclick="setQuality('crafted')">Crafted</button>
     </div>
 
     <div id="ethereal-area" style="display:none; margin-top: 10px;">
@@ -349,7 +352,7 @@ function getValidAffixes(affixList, item, quality) {
 
   return affixList.filter(a => {
     if (a.frequency === '0') return false;
-    if (quality === 'rare' && a.rare !== '1') return false;
+    if ((quality === 'rare' || quality === 'crafted') && a.rare !== '1') return false;
     return affixMatchesItem(a, fullChain, direct);
   });
 }
@@ -357,6 +360,145 @@ function getValidAffixes(affixList, item, quality) {
 // --- Filter a valid affix list by alvl eligibility ---
 function filterByAlvl(affixList, alvl) {
   return affixList.filter(a => affixEligibleAtAlvl(a, alvl));
+}
+
+// --- Affix count distribution helpers ---
+function binomCoeff(n, k) {
+  if (k < 0 || k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  let r = 1;
+  for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+  return r;
+}
+
+function permutations(n, k) {
+  let r = 1;
+  for (let i = 0; i < k; i++) r *= (n - i);
+  return r;
+}
+
+// Returns array of { pre, suf, prob } for all possible slot configurations
+function getSlotDistribution(quality, category, ilvl) {
+  if (quality === 'magic') {
+    let threshold;
+    if (category === 'armor' || category === 'weapon') threshold = 65;
+    else if (category === 'charm') threshold = 90;
+    else threshold = 85; // ring, amulet, jewel
+    if (ilvl >= threshold) {
+      return [{ pre: 1, suf: 1, prob: 1 }];
+    }
+    // Below threshold: each slot 50% independent, at least 1 guaranteed
+    return [
+      { pre: 1, suf: 1, prob: 0.25 },
+      { pre: 1, suf: 0, prob: 0.375 },
+      { pre: 0, suf: 1, prob: 0.375 }
+    ];
+  }
+  if (quality === 'rare') {
+    if (category === 'jewel') return rareSlotDist(4, 4);
+    let min;
+    if (ilvl >= 85) min = 6;
+    else if (ilvl >= 65) min = 5;
+    else if (ilvl >= 45) min = 4;
+    else min = 3;
+    return rareSlotDist(min, 6);
+  }
+  if (quality === 'crafted') {
+    // Crafted: 1-4 additional affixes with specific ilvl-based distribution
+    // These are distributed as prefix/suffix with max 3 each
+    return craftedSlotDist(ilvl);
+  }
+  return [{ pre: 0, suf: 0, prob: 1 }];
+}
+
+function rareSlotDist(minTotal, maxTotal) {
+  const extraSlots = maxTotal - minTotal;
+  const merged = {};
+  for (let extra = 0; extra <= extraSlots; extra++) {
+    const N = minTotal + extra;
+    const pN = binomCoeff(extraSlots, extra) * Math.pow(0.5, extraSlots);
+    const wild = N - 2;
+    for (let wp = 0; wp <= wild; wp++) {
+      let nPre = 1 + wp, nSuf = 1 + (wild - wp);
+      if (nPre > 3) { nSuf += nPre - 3; nPre = 3; }
+      if (nSuf > 3) { nPre += nSuf - 3; nSuf = 3; }
+      const pWild = binomCoeff(wild, wp) * Math.pow(0.5, wild);
+      const key = nPre + ',' + nSuf;
+      if (!merged[key]) merged[key] = { pre: nPre, suf: nSuf, prob: 0 };
+      merged[key].prob += pN * pWild;
+    }
+  }
+  return Object.values(merged);
+}
+
+function craftedSlotDist(ilvl) {
+  // Crafted affix count probabilities by ilvl
+  // These are ADDITIONAL affixes (on top of predetermined crafted mods)
+  let countProbs;
+  if (ilvl >= 71) {
+    countProbs = [{ n: 4, prob: 1 }];
+  } else if (ilvl >= 51) {
+    countProbs = [{ n: 3, prob: 0.8 }, { n: 4, prob: 0.2 }];
+  } else if (ilvl >= 31) {
+    countProbs = [{ n: 2, prob: 0.6 }, { n: 3, prob: 0.2 }, { n: 4, prob: 0.2 }];
+  } else {
+    countProbs = [{ n: 1, prob: 0.4 }, { n: 2, prob: 0.2 }, { n: 3, prob: 0.2 }, { n: 4, prob: 0.2 }];
+  }
+
+  // For each count, distribute into prefix/suffix (each slot 50/50, max 3 each)
+  const merged = {};
+  for (const cp of countProbs) {
+    for (let wp = 0; wp <= cp.n; wp++) {
+      let nPre = wp, nSuf = cp.n - wp;
+      if (nPre > 3) { nSuf += nPre - 3; nPre = 3; }
+      if (nSuf > 3) { nPre += nSuf - 3; nSuf = 3; }
+      const pWild = binomCoeff(cp.n, wp) * Math.pow(0.5, cp.n);
+      const key = nPre + ',' + nSuf;
+      if (!merged[key]) merged[key] = { pre: nPre, suf: nSuf, prob: 0 };
+      merged[key].prob += cp.prob * pWild;
+    }
+  }
+  return Object.values(merged);
+}
+
+// Compute combined probability of Kpre specific prefixes + Ksuf specific suffixes
+function computeCombinedProb(slotDist, preProbs, sufProbs) {
+  let totalProb = 0;
+  for (const config of slotDist) {
+    if (config.pre < preProbs.length || config.suf < sufProbs.length) continue;
+    let p = config.prob;
+    p *= permutations(config.pre, preProbs.length);
+    for (const pp of preProbs) p *= pp;
+    p *= permutations(config.suf, sufProbs.length);
+    for (const sp of sufProbs) p *= sp;
+    totalProb += p;
+  }
+  return totalProb;
+}
+
+// Get affix count description string for display
+function getAffixCountDesc(quality, category, ilvl) {
+  if (quality === 'magic') {
+    let threshold;
+    if (category === 'armor' || category === 'weapon') threshold = 65;
+    else if (category === 'charm') threshold = 90;
+    else threshold = 85;
+    return ilvl >= threshold ? '2 affixes' : '1-2 affixes';
+  }
+  if (quality === 'rare') {
+    if (category === 'jewel') return '4 affixes';
+    if (ilvl >= 85) return '6 affixes';
+    if (ilvl >= 65) return '5-6 affixes';
+    if (ilvl >= 45) return '4-6 affixes';
+    return '3-6 affixes';
+  }
+  if (quality === 'crafted') {
+    if (ilvl >= 71) return '4 affixes + crafted mods';
+    if (ilvl >= 51) return '3-4 affixes + crafted mods';
+    if (ilvl >= 31) return '2-4 affixes + crafted mods';
+    return '1-4 affixes + crafted mods';
+  }
+  return '';
 }
 
 // --- Helper to reset downstream controls ---
@@ -399,10 +541,13 @@ function resetFrom(level) {
   document.getElementById('mode-area').style.display = 'none';
   document.getElementById('fuzzy-controls').style.display = 'none';
   document.getElementById('fuzzy-affix-area').style.display = 'none';
+  const btnCrafted = document.getElementById('btn-crafted');
   btnMagic.disabled = true;
   btnRare.disabled = true;
+  btnCrafted.disabled = true;
   btnMagic.className = '';
   btnRare.className = '';
+  btnCrafted.className = '';
   document.getElementById('affix-area').style.display = 'none';
   renderPreview();
 }
@@ -535,11 +680,14 @@ document.getElementById('base').addEventListener('change', function() {
   state.selectedSuffixes = [];
   const valid = !isNaN(state.baseIndex) && state.baseIndex >= 0;
   const charmOnly = state.category === 'charm';
+  const noCraft = state.category === 'charm' || state.category === 'jewel';
   const canEth = valid && (state.category === 'armor' || state.category === 'weapon');
   document.getElementById('btn-magic').disabled = !valid;
   document.getElementById('btn-rare').disabled = !valid || charmOnly;
+  document.getElementById('btn-crafted').disabled = !valid || noCraft;
   document.getElementById('btn-magic').className = '';
   document.getElementById('btn-rare').className = '';
+  document.getElementById('btn-crafted').className = '';
   document.getElementById('ethereal-area').style.display = canEth ? 'block' : 'none';
   document.getElementById('affix-area').style.display = 'none';
   renderPreview();
@@ -557,12 +705,13 @@ function setQuality(q) {
   state.fuzzyAffixes = [];
   document.getElementById('btn-magic').className = q === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = q === 'rare' ? 'active-rare' : '';
+  document.getElementById('btn-crafted').className = q === 'crafted' ? 'active-crafted' : '';
   // Show ilvl input and mode toggle
   document.getElementById('ilvl-area').style.display = 'block';
   document.getElementById('mode-area').style.display = 'block';
   updateAlvlDisplay();
-  // Roll a random rare name when switching to rare
-  if (q === 'rare') {
+  // Roll a random rare name when switching to rare or crafted
+  if (q === 'rare' || q === 'crafted') {
     const items = getCategoryItems();
     const item = items[state.baseIndex];
     state.rareName = rollRareName(item);
@@ -602,71 +751,103 @@ function findOptimalIlvl() {
   const validPre = state._validPrefixes || [];
   const validSuf = state._validSuffixes || [];
 
-  // Gather selected affixes
+  // Check if this is an LLD-eligible build
+  const LLD_MAX = 30;
+  const baseLevelReq = parseInt(item.levelreq) || 0;
+
+  if (state.affixMode === 'fuzzy') {
+    // Fuzzy mode: use computeFuzzyOdds at each ilvl to find the best
+    const pool = state._fuzzyPool || [];
+    const selected = state.fuzzyAffixes.filter(i => i >= 0).map(i => pool[i]).filter(Boolean);
+    if (selected.length === 0) return;
+
+    const isLLD = baseLevelReq <= LLD_MAX && selected.every(a => (parseInt(a.levelreq) || 0) <= LLD_MAX);
+    let bestIlvl = state.ilvl;
+    let bestScore = -1;
+
+    const savedIlvl = state.ilvl;
+    for (let testIlvl = 1; testIlvl <= 99; testIlvl++) {
+      state.ilvl = testIlvl;
+      const result = computeFuzzyOdds();
+      if (!result) continue;
+
+      let score;
+      if (isLLD && result.lldValidCombinations > 0) {
+        // For LLD builds, optimize overall LLD + match chance
+        score = result.totalCombinations > 0 ? result.lldValidCombinations / result.totalCombinations : 0;
+      } else if (!isLLD && result.percentage > 0) {
+        score = result.percentage;
+      } else {
+        continue;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestIlvl = testIlvl;
+      }
+    }
+    state.ilvl = bestIlvl;
+    document.getElementById('ilvl-input').value = bestIlvl;
+    updateAlvlDisplay();
+    buildFuzzyAffixSlots();
+    renderPreview();
+    return;
+  }
+
+  // Exact mode
   const selPre = state.selectedPrefixes.filter(i => i >= 0).map(i => validPre[i]).filter(Boolean);
   const selSuf = state.selectedSuffixes.filter(i => i >= 0).map(i => validSuf[i]).filter(Boolean);
   if (selPre.length === 0 && selSuf.length === 0) return;
 
-  let bestIlvl = 1;
-  let bestProb = 0;
+  const allSelected = [...selPre, ...selSuf];
+  const isLLD = baseLevelReq <= LLD_MAX && allSelected.every(a => (parseInt(a.levelreq) || 0) <= LLD_MAX);
 
-  const isJewelRare = state.quality === 'rare' && state.category === 'jewel';
-  const preSlots = state.quality === 'rare' ? 3 : 1;
-  const sufSlots = state.quality === 'rare' ? 3 : 1;
+  let bestIlvl = state.ilvl;
+  let bestScore = -1;
 
   for (let testIlvl = 1; testIlvl <= 99; testIlvl++) {
     const alvl = calcAlvl(testIlvl, item);
 
-    // Check all selected affixes are eligible at this alvl
-    const allEligible = [...selPre, ...selSuf].every(a => affixEligibleAtAlvl(a, alvl));
+    const allEligible = allSelected.every(a => affixEligibleAtAlvl(a, alvl));
     if (!allEligible) continue;
 
-    // Calculate pool sizes at this alvl
     const eligPre = filterByAlvl(validPre, alvl);
     const eligSuf = filterByAlvl(validSuf, alvl);
 
     const preTotalFreq = eligPre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
     const sufTotalFreq = eligSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
 
-    let prob = 1;
-    if (isJewelRare) {
-      let prodPre = 1, prodSuf = 1;
-      for (const a of selPre) {
-        const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
-        prodPre *= preTotalFreq > 0 ? f / preTotalFreq : 0;
+    const preProbs = selPre.map(a => {
+      const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      return preTotalFreq > 0 ? f / preTotalFreq : 0;
+    });
+    const sufProbs = selSuf.map(a => {
+      const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      return sufTotalFreq > 0 ? f / sufTotalFreq : 0;
+    });
+
+    const slotDist = getSlotDistribution(state.quality, state.category, testIlvl);
+    let prob = computeCombinedProb(slotDist, preProbs, sufProbs);
+    if (prob <= 0) continue;
+
+    if (isLLD) {
+      // Factor in LLD eligibility of remaining random affixes
+      const lldPreFreq = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const lldSufFreq = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
+      const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
+
+      let pLLD = 0;
+      for (const config of slotDist) {
+        const remPre = Math.max(0, config.pre - selPre.length);
+        const remSuf = Math.max(0, config.suf - selSuf.length);
+        pLLD += config.prob * Math.pow(pPreLLD, remPre) * Math.pow(pSufLLD, remSuf);
       }
-      for (const a of selSuf) {
-        const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
-        prodSuf *= sufTotalFreq > 0 ? f / sufTotalFreq : 0;
-      }
-      const Np = selPre.length, Ns = selSuf.length;
-      const wildCount = Math.max(0, (Np - 1) + (Ns - 1));
-      let wildArr = 1;
-      for (let i = 0; i < wildCount; i++) wildArr *= (2 - i);
-      prob = prodPre * prodSuf * Math.max(Np, 1) * Math.max(Ns, 1) * wildArr;
-    } else {
-      if (selPre.length > 0) {
-        let p = 1;
-        for (let i = 0; i < selPre.length; i++) p *= (preSlots - i);
-        for (const a of selPre) {
-          const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
-          p *= preTotalFreq > 0 ? f / preTotalFreq : 0;
-        }
-        prob *= p;
-      }
-      if (selSuf.length > 0) {
-        let p = 1;
-        for (let i = 0; i < selSuf.length; i++) p *= (sufSlots - i);
-        for (const a of selSuf) {
-          const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
-          p *= sufTotalFreq > 0 ? f / sufTotalFreq : 0;
-        }
-        prob *= p;
-      }
+      prob *= pLLD;
     }
 
-    if (prob > bestProb) {
-      bestProb = prob;
+    if (prob > bestScore) {
+      bestScore = prob;
       bestIlvl = testIlvl;
     }
   }
@@ -830,18 +1011,7 @@ function computeFuzzyOdds() {
   var eligPre = filterByAlvl(validPrefixes, alvl);
   var eligSuf = filterByAlvl(validSuffixes, alvl);
 
-  var isJewelRare = state.quality === 'rare' && state.category === 'jewel';
-  var preSlots, sufSlots;
-  if (isJewelRare) {
-    preSlots = -1;
-    sufSlots = -1;
-  } else if (state.quality === 'rare') {
-    preSlots = 3;
-    sufSlots = 3;
-  } else {
-    preSlots = 1;
-    sufSlots = 1;
-  }
+  var slotDist = getSlotDistribution(state.quality, state.category, state.ilvl);
 
   // Map selected affixes to indices in the eligible pools
   var selPreSet = new Set();
@@ -870,47 +1040,14 @@ function computeFuzzyOdds() {
   var baseLevelReq = parseInt(item.levelreq) || 0;
   var baseLLD = baseLevelReq <= 30;
 
-  if (state.quality === 'magic') {
-    var totalPossible = eligPre.length * eligSuf.length;
-    var totalValid = 0;
-    var totalValidLLD = 0;
-    var totalLLD = 0;
-    for (var pi2 = 0; pi2 < eligPre.length; pi2++) {
-      for (var xi2 = 0; xi2 < eligSuf.length; xi2++) {
-        var hits = 0;
-        if (selPreSet.has(pi2)) hits++;
-        if (selSufSet.has(xi2)) hits++;
-        var isMatchValid = hits >= minMatch;
-        var comboLLD = baseLLD && (parseInt(eligPre[pi2].levelreq) || 0) <= 30 && (parseInt(eligSuf[xi2].levelreq) || 0) <= 30;
-        if (comboLLD) totalLLD++;
-        if (isMatchValid) {
-          totalValid++;
-          if (comboLLD) totalValidLLD++;
-        }
-      }
-    }
-    return {
-      validCombinations: totalValid,
-      totalCombinations: totalPossible,
-      percentage: totalPossible > 0 ? (totalValid / totalPossible * 100) : 0,
-      lldValidCombinations: totalValidLLD,
-      lldTotalCombinations: totalLLD,
-      lldPercentage: totalValid > 0 ? (totalValidLLD / totalValid * 100) : 0,
-      baseLLD: baseLLD,
-      minMatch: minMatch,
-      selectedCount: selectedAffixes.length,
-      allEligible: allEligible,
-      capped: false
-    };
-  }
-
-  return computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots, baseLLD);
+  return computeFuzzyOddsWeighted(slotDist, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, baseLLD, selectedAffixes);
 }
 
-function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, isJewelRare, preSlots, sufSlots, baseLLD) {
+function computeFuzzyOddsWeighted(slotDist, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, baseLLD, selectedAffixes) {
   var CAP = 500000;
 
   function getGroupUniqueSubsets(pool, size) {
+    if (size <= 0) return [[]];
     var results = [];
     function recurse(start, current, usedGroups) {
       if (current.length === size) {
@@ -937,150 +1074,119 @@ function computeFuzzyOddsGroupAware(selectedAffixes, eligPre, eligSuf, selPreSet
     return results;
   }
 
-  if (isJewelRare) {
-    var combined = [];
-    var ci;
-    for (ci = 0; ci < eligPre.length; ci++) combined.push({ idx: ci, type: 'prefix', affix: eligPre[ci] });
-    for (ci = 0; ci < eligSuf.length; ci++) combined.push({ idx: ci, type: 'suffix', affix: eligSuf[ci] });
-
-    var totalPossibleJ = 0;
-    var totalValidJ = 0;
-    var totalValidLLDJ = 0;
-    var totalLLDJ = 0;
-    var cappedJ = false;
-
-    function recurseJewel(start, current, usedGroups, pCount, sCount) {
-      if (current.length === 4) {
-        if (pCount >= 1 && sCount >= 1) {
-          totalPossibleJ++;
-          var hits = 0;
-          var comboLLD = baseLLD;
-          for (var ci2 = 0; ci2 < current.length; ci2++) {
-            var c = current[ci2];
-            if (c.type === 'prefix' && selPreSet.has(c.idx)) hits++;
-            if (c.type === 'suffix' && selSufSet.has(c.idx)) hits++;
-            if (comboLLD && (parseInt(c.affix.levelreq) || 0) > 30) comboLLD = false;
-          }
-          if (comboLLD) totalLLDJ++;
-          if (hits >= minMatch) {
-            totalValidJ++;
-            if (comboLLD) totalValidLLDJ++;
-          }
-        }
-        return;
-      }
-      if (start >= combined.length) return;
-      if (totalPossibleJ > CAP) { cappedJ = true; return; }
-      var remaining = combined.length - start;
-      var needed = 4 - current.length;
-      if (remaining < needed) return;
-      for (var i = start; i < combined.length; i++) {
-        var entry = combined[i];
-        var grp = entry.affix.group;
-        if (grp && usedGroups.has(grp)) continue;
-        current.push(entry);
-        if (grp) usedGroups.add(grp);
-        recurseJewel(i + 1, current, usedGroups, pCount + (entry.type === 'prefix' ? 1 : 0), sCount + (entry.type === 'suffix' ? 1 : 0));
-        current.pop();
-        if (grp) usedGroups.delete(grp);
-        if (totalPossibleJ > CAP) { cappedJ = true; return; }
-      }
-    }
-
-    recurseJewel(0, [], new Set(), 0, 0);
-
-    return {
-      validCombinations: totalValidJ,
-      totalCombinations: totalPossibleJ,
-      percentage: totalPossibleJ > 0 ? (totalValidJ / totalPossibleJ * 100) : 0,
-      lldValidCombinations: totalValidLLDJ,
-      lldTotalCombinations: totalLLDJ,
-      lldPercentage: totalValidJ > 0 ? (totalValidLLDJ / totalValidJ * 100) : 0,
-      baseLLD: baseLLD,
-      minMatch: minMatch,
-      selectedCount: selectedAffixes.length,
-      allEligible: selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); }),
-      capped: cappedJ
-    };
-  }
-
-  // Rare: 3 prefix + 3 suffix slots
-  var preCombos = getGroupUniqueSubsets(eligPre, preSlots);
-  var sufCombos = getGroupUniqueSubsets(eligSuf, sufSlots);
-  var cappedR = preCombos.length > CAP || sufCombos.length > CAP;
-  var totalPossibleR = preCombos.length * sufCombos.length;
-  var totalValidR = 0;
-  var totalValidLLDR = 0;
-  var totalLLDR = 0;
-
-  // Precompute hit counts and LLD status for prefix combos
-  var preInfo = preCombos.map(function(combo) {
-    var hits = 0;
-    var lld = baseLLD;
-    for (var ci3 = 0; ci3 < combo.length; ci3++) {
-      if (selPreSet.has(combo[ci3])) hits++;
-      if (lld && (parseInt(eligPre[combo[ci3]].levelreq) || 0) > 30) lld = false;
+  function comboInfo(combo, pool, selSet) {
+    var hits = 0, lld = true;
+    for (var i = 0; i < combo.length; i++) {
+      if (selSet.has(combo[i])) hits++;
+      if (lld && (parseInt(pool[combo[i]].levelreq) || 0) > 30) lld = false;
     }
     return { hits: hits, lld: lld };
-  });
-
-  // Build suffix distribution keyed by (hits, lld)
-  var sufDist = {};
-  for (var sci = 0; sci < sufCombos.length; sci++) {
-    var hitsS = 0;
-    var lldS = true;
-    for (var ci4 = 0; ci4 < sufCombos[sci].length; ci4++) {
-      if (selSufSet.has(sufCombos[sci][ci4])) hitsS++;
-      if (lldS && (parseInt(eligSuf[sufCombos[sci][ci4]].levelreq) || 0) > 30) lldS = false;
-    }
-    var key = hitsS + ':' + (lldS ? '1' : '0');
-    sufDist[key] = (sufDist[key] || 0) + 1;
   }
 
-  for (var phi = 0; phi < preInfo.length; phi++) {
-    var preHits = preInfo[phi].hits;
-    var preLLD = preInfo[phi].lld;
-    var needSuf = Math.max(0, minMatch - preHits);
-    for (var sk in sufDist) {
-      var parts = sk.split(':');
-      var sufHits = parseInt(parts[0]);
-      var sufLLD = parts[1] === '1';
-      if (sufHits >= needSuf) {
-        totalValidR += sufDist[sk];
-        if (preLLD && sufLLD) totalValidLLDR += sufDist[sk];
-      }
-      if (preLLD && sufLLD) totalLLDR += sufDist[sk];
+  // Collect unique prefix and suffix sizes needed
+  var preSizes = new Set(), sufSizes = new Set();
+  for (var di = 0; di < slotDist.length; di++) {
+    preSizes.add(slotDist[di].pre);
+    sufSizes.add(slotDist[di].suf);
+  }
+
+  // Precompute subsets and distributions for each size
+  var preSubsets = {}, sufSubsets = {};
+  var preDists = {}, sufDists = {};
+  var capped = false;
+
+  preSizes.forEach(function(size) {
+    var combos = getGroupUniqueSubsets(eligPre, size);
+    if (combos.length > CAP) capped = true;
+    preSubsets[size] = combos;
+    // Build distribution: keyed by (hits, lld)
+    var dist = {};
+    for (var i = 0; i < combos.length; i++) {
+      var info = comboInfo(combos[i], eligPre, selPreSet);
+      var key = info.hits + ':' + (info.lld && baseLLD ? '1' : '0');
+      dist[key] = (dist[key] || 0) + 1;
     }
+    preDists[size] = { dist: dist, count: combos.length };
+  });
+
+  sufSizes.forEach(function(size) {
+    var combos = getGroupUniqueSubsets(eligSuf, size);
+    if (combos.length > CAP) capped = true;
+    sufSubsets[size] = combos;
+    var dist = {};
+    for (var i = 0; i < combos.length; i++) {
+      var info = comboInfo(combos[i], eligSuf, selSufSet);
+      var key = info.hits + ':' + (info.lld ? '1' : '0');
+      dist[key] = (dist[key] || 0) + 1;
+    }
+    sufDists[size] = { dist: dist, count: combos.length };
+  });
+
+  // Weighted combination across all slot configurations
+  var totalPossible = 0, totalValid = 0, totalValidLLD = 0, totalLLD = 0;
+
+  for (var ci = 0; ci < slotDist.length; ci++) {
+    var config = slotDist[ci];
+    var pd = preDists[config.pre];
+    var sd = sufDists[config.suf];
+    var configTotal = pd.count * sd.count;
+    var configValid = 0, configValidLLD = 0, configLLD = 0;
+
+    for (var pk in pd.dist) {
+      var pp = pk.split(':');
+      var preHits = parseInt(pp[0]);
+      var preLLD = pp[1] === '1';
+      var needSuf = Math.max(0, minMatch - preHits);
+
+      for (var sk in sd.dist) {
+        var sp = sk.split(':');
+        var sufHits = parseInt(sp[0]);
+        var sufLLD = sp[1] === '1';
+        var product = pd.dist[pk] * sd.dist[sk];
+
+        if (preLLD && sufLLD) configLLD += product;
+        if (preHits + sufHits >= minMatch) {
+          configValid += product;
+          if (preLLD && sufLLD) configValidLLD += product;
+        }
+      }
+    }
+
+    totalPossible += config.prob * configTotal;
+    totalValid += config.prob * configValid;
+    totalValidLLD += config.prob * configValidLLD;
+    totalLLD += config.prob * configLLD;
   }
 
   return {
-    validCombinations: totalValidR,
-    totalCombinations: totalPossibleR,
-    percentage: totalPossibleR > 0 ? (totalValidR / totalPossibleR * 100) : 0,
-    lldValidCombinations: totalValidLLDR,
-    lldTotalCombinations: totalLLDR,
-    lldPercentage: totalValidR > 0 ? (totalValidLLDR / totalValidR * 100) : 0,
+    validCombinations: totalValid,
+    totalCombinations: totalPossible,
+    percentage: totalPossible > 0 ? (totalValid / totalPossible * 100) : 0,
+    lldValidCombinations: totalValidLLD,
+    lldTotalCombinations: totalLLD,
+    lldPercentage: totalValid > 0 ? (totalValidLLD / totalValid * 100) : 0,
     baseLLD: baseLLD,
     minMatch: minMatch,
     selectedCount: selectedAffixes.length,
     allEligible: selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); }),
-    capped: cappedR
+    capped: capped
   };
 }
 
 function buildAffixSlots() {
   const isJewelRare = state.quality === 'rare' && state.category === 'jewel';
-  const maxPre = state.quality === 'rare' ? 3 : 1;
-  const maxSuf = state.quality === 'rare' ? 3 : 1;
+  const maxPre = (state.quality === 'rare' || state.quality === 'crafted') ? 3 : 1;
+  const maxSuf = (state.quality === 'rare' || state.quality === 'crafted') ? 3 : 1;
   const area = document.getElementById('affix-area');
   area.style.display = 'block';
 
+  const affixDesc = getAffixCountDesc(state.quality, state.category, state.ilvl);
   if (isJewelRare) {
-    document.getElementById('prefix-header').textContent = 'Prefixes (4 affixes total)';
-    document.getElementById('suffix-header').textContent = 'Suffixes (4 affixes total)';
+    document.getElementById('prefix-header').textContent = 'Prefixes (' + affixDesc + ')';
+    document.getElementById('suffix-header').textContent = 'Suffixes (' + affixDesc + ')';
   } else {
-    document.getElementById('prefix-header').textContent = 'Prefixes (up to ' + maxPre + ')';
-    document.getElementById('suffix-header').textContent = 'Suffixes (up to ' + maxSuf + ')';
+    document.getElementById('prefix-header').textContent = 'Prefixes (up to ' + maxPre + ', ' + affixDesc + ')';
+    document.getElementById('suffix-header').textContent = 'Suffixes (up to ' + maxSuf + ', ' + affixDesc + ')';
   }
 
   const items = getCategoryItems();
@@ -1249,8 +1355,8 @@ function renderPreview() {
 
   // Fuzzy mode: show combinatorial odds instead of normal item preview
   if (state.affixMode === 'fuzzy') {
-    var html = '';
-    html += '<div class="item-name ' + (state.quality === 'magic' ? 'magic' : 'rare') + '">' + esc(item.name) + '</div>';
+    let html = '';
+    html += '<div class="item-name ' + (state.quality === 'crafted' ? 'crafted' : (state.quality === 'magic' ? 'magic' : 'rare')) + '">' + esc(item.name) + '</div>';
     html += '<div style="color:#888; font-size:0.85rem; font-style:italic; margin: 10px 0;">Fuzzy Affixes mode - showing combination odds</div>';
 
     var fuzzyResult = computeFuzzyOdds();
@@ -1336,10 +1442,10 @@ function renderPreview() {
   const ethMult = state.ethereal ? 1.25 : 1;
 
   // Build item name
-  const nameClass = state.quality === 'magic' ? 'magic' : 'rare';
+  const nameClass = state.quality === 'crafted' ? 'crafted' : (state.quality === 'magic' ? 'magic' : 'rare');
   let html = '';
 
-  if (state.quality === 'rare') {
+  if (state.quality === 'rare' || state.quality === 'crafted') {
     html += '<div class="item-name ' + nameClass + '">' + esc(state.rareName) +
       ' <span class="reroll-btn" onclick="rerollRareName()" title="Reroll rare name">&#x21bb;</span></div>';
     html += '<div class="base-name">' + esc(item.name) + '</div>';
@@ -1438,14 +1544,21 @@ function renderPreview() {
 
     html += '<div class="separator"></div>';
     html += '<div class="odds-section">';
-    html += '<h4>Roll Odds (alvl ' + alvl + ', ' + eligPre.length + ' prefixes / ' + eligSuf.length + ' suffixes in pool)</h4>';
+    const affixCountDesc = getAffixCountDesc(state.quality, state.category, state.ilvl);
+    html += '<h4>Roll Odds (alvl ' + alvl + ', ' + affixCountDesc + ', ' + eligPre.length + ' prefixes / ' + eligSuf.length + ' suffixes in pool)</h4>';
 
-    // Rare: 3 prefix slots, 3 suffix slots, all always roll
-    // Magic: 1 prefix slot, 1 suffix slot, both always roll
-    // Selected affixes can land in any slot (order doesn't matter)
-    const isJewelRare = state.quality === 'rare' && state.category === 'jewel';
-    const preSlots = state.quality === 'rare' ? 3 : 1;
-    const sufSlots = state.quality === 'rare' ? 3 : 1;
+    // Affix count probabilities
+    const countProbs = {};
+    for (const config of slotDist) {
+      const total = config.pre + config.suf;
+      countProbs[total] = (countProbs[total] || 0) + config.prob;
+    }
+    const countKeys = Object.keys(countProbs).map(Number).sort((a, b) => a - b);
+    if (countKeys.length > 1 || countKeys[0] !== countKeys[countKeys.length - 1]) {
+      html += '<div style="color:#a0a0b0; font-size:0.8rem; margin-bottom:8px;">';
+      html += countKeys.map(n => n + ' affixes: ' + (countProbs[n] * 100).toFixed(1) + '%').join(' &nbsp;|&nbsp; ');
+      html += '</div>';
+    }
 
     // Individual affix odds (per single roll from alvl-filtered pool)
     const preProbs = [];
@@ -1474,48 +1587,9 @@ function renderPreview() {
       html += '</div>';
     }
 
-    // Combined odds: K specific affixes must appear somewhere in N slots
-    // P ≈ P(N,K) × product(pi)  where P(N,K) = N!/(N-K)!
-    // This accounts for the affixes landing in any slot order
-    function permutations(n, k) {
-      let result = 1;
-      for (let i = 0; i < k; i++) result *= (n - i);
-      return result;
-    }
-
-    let combinedProb = 1;
-    if (isJewelRare) {
-      // Rare jewel: 1 guaranteed prefix slot, 1 guaranteed suffix slot,
-      // 2 wild slots that each independently pick prefix OR suffix pool.
-      // For Np selected prefixes and Ns selected suffixes (Np+Ns <= 4):
-      //   - 1 prefix must land in the guaranteed prefix slot
-      //   - 1 suffix must land in the guaranteed suffix slot
-      //   - remaining (Np-1) prefixes and (Ns-1) suffixes must land in
-      //     the 2 wild slots, which can go either way
-      const Np = preProbs.length;
-      const Ns = sufProbs.length;
-      // Product of all individual probabilities
-      let prodPre = 1;
-      for (const p of preProbs) prodPre *= p;
-      let prodSuf = 1;
-      for (const p of sufProbs) prodSuf *= p;
-      // Guaranteed slots: any of the Np prefixes can fill it, any of Ns suffixes
-      // Wild slots: the remaining affixes fill the 2 wild slots in any order
-      const wildCount = (Np - 1) + (Ns - 1); // affixes that need wild slots
-      const wildArrangements = wildCount <= 0 ? 1 : permutations(2, wildCount);
-      combinedProb = prodPre * prodSuf * Np * Ns * wildArrangements;
-    } else {
-      if (preProbs.length > 0) {
-        let p = permutations(preSlots, preProbs.length);
-        for (const prob of preProbs) p *= prob;
-        combinedProb *= p;
-      }
-      if (sufProbs.length > 0) {
-        let p = permutations(sufSlots, sufProbs.length);
-        for (const prob of sufProbs) p *= prob;
-        combinedProb *= p;
-      }
-    }
+    // Combined odds using slot distribution model
+    const slotDist = getSlotDistribution(state.quality, state.category, state.ilvl);
+    let combinedProb = computeCombinedProb(slotDist, preProbs, sufProbs);
 
     // Ethereal odds
     if (state.ethereal) {
@@ -1544,55 +1618,30 @@ function renderPreview() {
       html += '<div class="lld-section">';
       html += '<div class="lld-header">LLD Eligibility (Req Level &le; ' + LLD_MAX_LEVEL + ')</div>';
 
-      const isJewelRare2 = state.quality === 'rare' && state.category === 'jewel';
-      if (isJewelRare2) {
-        const totalSlots = 4;
-        const usedSlots = selPre.length + selSuf.length;
-        const wildRemaining = totalSlots - usedSlots;
-        if (wildRemaining > 0) {
-          const lldEligPre = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
-          const lldEligSuf = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
-          const lldPreFreq = lldEligPre.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
-          const lldSufFreq = lldEligSuf.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
-          const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
-          const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
-          const pWildLLD = 0.5 * pPreLLD + 0.5 * pSufLLD;
-          const pAllWildLLD = Math.pow(pWildLLD, wildRemaining);
-          html += '<div class="lld-odds">' + lldEligPre.length + ' of ' + eligPre.length + ' eligible prefixes are LLD (' + (pPreLLD * 100).toFixed(1) + '% by weight)</div>';
-          html += '<div class="lld-odds">' + lldEligSuf.length + ' of ' + eligSuf.length + ' eligible suffixes are LLD (' + (pSufLLD * 100).toFixed(1) + '% by weight)</div>';
-          html += '<div class="lld-odds">Remaining random slots: ' + wildRemaining + '</div>';
-          html += '<div class="lld-odds">Chance remaining affixes keep item LLD-eligible: <span class="lld-value">' + (pAllWildLLD * 100).toFixed(2) + '%</span></div>';
-        } else {
-          html += '<div class="lld-eligible">All affix slots defined - item is LLD eligible!</div>';
-        }
+      const lldEligPre = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
+      const lldEligSuf = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
+      const lldPreFreq = lldEligPre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const lldSufFreq = lldEligSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
+      const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
+
+      // Weighted average across all possible slot configurations
+      let pLLD = 0;
+      let maxRemainingPre = 0, maxRemainingSuf = 0;
+      for (const config of slotDist) {
+        const remPre = Math.max(0, config.pre - selPre.length);
+        const remSuf = Math.max(0, config.suf - selSuf.length);
+        maxRemainingPre = Math.max(maxRemainingPre, remPre);
+        maxRemainingSuf = Math.max(maxRemainingSuf, remSuf);
+        pLLD += config.prob * Math.pow(pPreLLD, remPre) * Math.pow(pSufLLD, remSuf);
+      }
+
+      if (maxRemainingPre === 0 && maxRemainingSuf === 0) {
+        html += '<div class="lld-eligible">All affix slots defined - item is LLD eligible!</div>';
       } else {
-        const maxPreSlots = state.quality === 'rare' ? 3 : 1;
-        const maxSufSlots = state.quality === 'rare' ? 3 : 1;
-        const remainingPreSlots = maxPreSlots - selPre.length;
-        const remainingSufSlots = maxSufSlots - selSuf.length;
-
-        if (remainingPreSlots === 0 && remainingSufSlots === 0) {
-          html += '<div class="lld-eligible">All affix slots defined - item is LLD eligible!</div>';
-        } else {
-          const lldEligPre = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
-          const lldEligSuf = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
-          const lldPreFreq = lldEligPre.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
-          const lldSufFreq = lldEligSuf.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
-          const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
-          const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
-          const pAllPreLLD = Math.pow(pPreLLD, remainingPreSlots);
-          const pAllSufLLD = Math.pow(pSufLLD, remainingSufSlots);
-          const pLLD = pAllPreLLD * pAllSufLLD;
-
-          if (remainingPreSlots > 0) {
-            html += '<div class="lld-odds">' + lldEligPre.length + ' of ' + eligPre.length + ' eligible prefixes are LLD (' + (pPreLLD * 100).toFixed(1) + '% by weight)</div>';
-          }
-          if (remainingSufSlots > 0) {
-            html += '<div class="lld-odds">' + lldEligSuf.length + ' of ' + eligSuf.length + ' eligible suffixes are LLD (' + (pSufLLD * 100).toFixed(1) + '% by weight)</div>';
-          }
-          html += '<div class="lld-odds">Remaining random slots: ' + remainingPreSlots + ' prefix, ' + remainingSufSlots + ' suffix</div>';
-          html += '<div class="lld-odds">Chance remaining affixes keep item LLD-eligible: <span class="lld-value">' + (pLLD * 100).toFixed(2) + '%</span></div>';
-        }
+        html += '<div class="lld-odds">' + lldEligPre.length + ' of ' + eligPre.length + ' eligible prefixes are LLD (' + (pPreLLD * 100).toFixed(1) + '% by weight)</div>';
+        html += '<div class="lld-odds">' + lldEligSuf.length + ' of ' + eligSuf.length + ' eligible suffixes are LLD (' + (pSufLLD * 100).toFixed(1) + '% by weight)</div>';
+        html += '<div class="lld-odds">Chance remaining affixes keep item LLD-eligible: <span class="lld-value">' + (pLLD * 100).toFixed(2) + '%</span></div>';
       }
       html += '</div>';
     }
@@ -1905,8 +1954,29 @@ function stateToHash() {
   if (preIds.length) parts.push('p=' + preIds.join('.'));
   if (sufIds.length) parts.push('s=' + sufIds.join('.'));
 
+  // Fuzzy mode
+  if (state.affixMode === 'fuzzy') parts.push('m=f');
+  if (state.affixMode === 'fuzzy' && state.fuzzyMin > 1) parts.push('fm=' + state.fuzzyMin);
+  if (state.affixMode === 'fuzzy' && state.fuzzyAffixes.length > 0) {
+    const pool = state._fuzzyPool || [];
+    const faIds = state.fuzzyAffixes
+      .filter(i => i >= 0 && pool[i])
+      .map(i => {
+        const a = pool[i];
+        if (a._poolType === 'prefix') {
+          const gi = prefixes.findIndex(p => p.Name === a.Name && p.group === a.group);
+          return gi >= 0 ? 'p' + gi : null;
+        } else {
+          const gi = suffixes.findIndex(s => s.Name === a.Name && s.group === a.group);
+          return gi >= 0 ? 's' + gi : null;
+        }
+      })
+      .filter(Boolean);
+    if (faIds.length) parts.push('fa=' + faIds.join('.'));
+  }
+
   // Rare name
-  if (state.quality === 'rare' && state.rareName) {
+  if ((state.quality === 'rare' || state.quality === 'crafted') && state.rareName) {
     const nameParts = state.rareName.split(' ');
     if (nameParts.length >= 2) {
       const rpi = rarePrefixes.findIndex(r => r.name === nameParts[0]);
@@ -1929,7 +1999,7 @@ function loadFromHash() {
   if (!params.b || !params.q) return;
 
   const code = params.b;
-  const quality = params.q === 'r' ? 'rare' : 'magic';
+  const quality = params.q === 'r' ? 'rare' : params.q === 'c' ? 'crafted' : 'magic';
 
   // Find the item by code in all data sources
   let category = '';
@@ -1985,58 +2055,86 @@ function loadFromHash() {
   state.ilvl = params.i ? Math.max(1, Math.min(99, parseInt(params.i) || 99)) : 99;
   document.getElementById('ilvl-input').value = state.ilvl;
   document.getElementById('ilvl-area').style.display = 'block';
+  document.getElementById('mode-area').style.display = 'block';
   updateAlvlDisplay();
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
   document.getElementById('btn-magic').className = quality === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = quality === 'rare' ? 'active-rare' : '';
+  document.getElementById('btn-crafted').className = quality === 'crafted' ? 'active-crafted' : '';
 
   // Restore rare name before building slots
-  if (quality === 'rare' && params.rn) {
+  if ((quality === 'rare' || quality === 'crafted') && params.rn) {
     const [rpi, rsi] = params.rn.split('.').map(Number);
     if (rarePrefixes[rpi] && rareSuffixes[rsi]) {
       state.rareName = rarePrefixes[rpi].name + ' ' + rareSuffixes[rsi].name;
     } else {
       state.rareName = rollRareName(item);
     }
+  } else if (quality === 'rare' || quality === 'crafted') {
+    const items2 = getCategoryItems();
+    state.rareName = rollRareName(items2[baseIndex]);
   } else {
     state.rareName = '';
   }
 
-  buildAffixSlots();
+  // Restore fuzzy mode if present
+  if (params.m === 'f') {
+    state.affixMode = 'fuzzy';
+    state.fuzzyMin = params.fm ? Math.max(1, parseInt(params.fm) || 1) : 1;
+    document.getElementById('fuzzy-min').value = state.fuzzyMin;
+    setAffixMode('fuzzy');
 
-  // Restore affix selections
-  const validPre = state._validPrefixes || [];
-  const validSuf = state._validSuffixes || [];
-
-  if (params.p) {
-    const preIds = params.p.split('.').map(Number);
-    for (let i = 0; i < preIds.length && i < state.selectedPrefixes.length; i++) {
-      const affix = prefixes[preIds[i]];
-      if (!affix) continue;
-      const poolIdx = validPre.indexOf(affix);
-      if (poolIdx >= 0) {
-        state.selectedPrefixes[i] = poolIdx;
-        const sel = document.getElementById('prefix-' + i);
-        if (sel) { sel.value = poolIdx; }
+    if (params.fa) {
+      const pool = state._fuzzyPool || [];
+      const faTokens = params.fa.split('.');
+      state.fuzzyAffixes = [];
+      for (const tok of faTokens) {
+        const type = tok[0]; // 'p' or 's'
+        const gi = parseInt(tok.slice(1));
+        const affix = type === 'p' ? prefixes[gi] : suffixes[gi];
+        if (!affix) { state.fuzzyAffixes.push(-1); continue; }
+        const poolIdx = pool.findIndex(a => a.Name === affix.Name && a.group === affix.group && a._poolType === (type === 'p' ? 'prefix' : 'suffix'));
+        state.fuzzyAffixes.push(poolIdx >= 0 ? poolIdx : -1);
       }
+      buildFuzzyAffixSlots();
     }
-    refreshAffixSlots('prefix');
-  }
+  } else {
+    buildAffixSlots();
 
-  if (params.s) {
-    const sufIds = params.s.split('.').map(Number);
-    for (let i = 0; i < sufIds.length && i < state.selectedSuffixes.length; i++) {
-      const affix = suffixes[sufIds[i]];
-      if (!affix) continue;
-      const poolIdx = validSuf.indexOf(affix);
-      if (poolIdx >= 0) {
-        state.selectedSuffixes[i] = poolIdx;
-        const sel = document.getElementById('suffix-' + i);
-        if (sel) { sel.value = poolIdx; }
+    // Restore affix selections
+    const validPre = state._validPrefixes || [];
+    const validSuf = state._validSuffixes || [];
+
+    if (params.p) {
+      const preIds = params.p.split('.').map(Number);
+      for (let i = 0; i < preIds.length && i < state.selectedPrefixes.length; i++) {
+        const affix = prefixes[preIds[i]];
+        if (!affix) continue;
+        const poolIdx = validPre.indexOf(affix);
+        if (poolIdx >= 0) {
+          state.selectedPrefixes[i] = poolIdx;
+          const sel = document.getElementById('prefix-' + i);
+          if (sel) { sel.value = poolIdx; }
+        }
       }
+      refreshAffixSlots('prefix');
     }
-    refreshAffixSlots('suffix');
+
+    if (params.s) {
+      const sufIds = params.s.split('.').map(Number);
+      for (let i = 0; i < sufIds.length && i < state.selectedSuffixes.length; i++) {
+        const affix = suffixes[sufIds[i]];
+        if (!affix) continue;
+        const poolIdx = validSuf.indexOf(affix);
+        if (poolIdx >= 0) {
+          state.selectedSuffixes[i] = poolIdx;
+          const sel = document.getElementById('suffix-' + i);
+          if (sel) { sel.value = poolIdx; }
+        }
+      }
+      refreshAffixSlots('suffix');
+    }
   }
 
   renderPreview();
