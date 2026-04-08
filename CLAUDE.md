@@ -10,11 +10,50 @@ No build step, no dependencies, no tests, no linting. Pure HTML/CSS/JS in a sing
 
 ## Data Pipeline
 
-Tab-delimited `.txt` files in `data/` are the source of truth. These are converted to `data/js/*.js` files that export global `const` variables (e.g., `const ARMOR_DATA = [...]`). The JS files are loaded via `<script>` tags — no fetch/import. To regenerate JS from txt, use the Node.js conversion script pattern from the initial setup (parse TSV, write `const VAR = JSON.stringify(rows)`).
+Tab-delimited `.txt` files in `data/` are the source of truth. These are converted to `data/js/*.js` files that export global `const` variables (e.g., `const ARMOR_DATA = [...]`). The JS files are loaded via `<script>` tags — no fetch/import.
 
 **Do not create `data/json/` files** — they were removed to avoid sync issues.
 
-Global variable names: `ARMOR_DATA`, `WEAPONS_DATA`, `ITEM_TYPES_DATA`, `MAGIC_PREFIX_DATA`, `MAGIC_SUFFIX_DATA`, `RARE_PREFIX_DATA`, `RARE_SUFFIX_DATA`, `WEAPON_CLASS_DATA`, `PROPERTIES_DATA`.
+### Regenerating JS from TXT
+
+Run this Node.js script from the repo root to convert a `.txt` file to its `.js` equivalent:
+
+```js
+const fs = require('fs');
+const fname = 'Armor';           // change per file
+const varName = 'ARMOR_DATA';    // change per file
+
+const content = fs.readFileSync('data/' + fname + '.txt', 'utf-8');
+const lines = content.split(/\r?\n/).filter(l => l.trim());
+const headers = lines[0].split('\t');
+const rows = [];
+for (let i = 1; i < lines.length; i++) {
+  const vals = lines[i].split('\t');
+  const obj = {};
+  for (let j = 0; j < headers.length; j++) {
+    const key = headers[j].trim();
+    if (!key) continue;
+    obj[key] = vals[j] !== undefined ? vals[j].trim() : '';
+  }
+  rows.push(obj);
+}
+fs.writeFileSync('data/js/' + fname + '.js',
+  'const ' + varName + ' = ' + JSON.stringify(rows, null, 2) + ';\n');
+```
+
+### File-to-variable mapping
+
+| TXT file | JS variable |
+|---|---|
+| Armor.txt | `ARMOR_DATA` |
+| Weapons.txt | `WEAPONS_DATA` |
+| ItemTypes.txt | `ITEM_TYPES_DATA` |
+| MagicPrefix.txt | `MAGIC_PREFIX_DATA` |
+| MagicSuffix.txt | `MAGIC_SUFFIX_DATA` |
+| RarePrefix.txt | `RARE_PREFIX_DATA` |
+| RareSuffix.txt | `RARE_SUFFIX_DATA` |
+| WeaponClass.txt | `WEAPON_CLASS_DATA` |
+| Properties.txt | `PROPERTIES_DATA` |
 
 ## Architecture
 
