@@ -14,6 +14,11 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 20px; }
   h1 { text-align: center; color: #c4a84f; margin-bottom: 20px; font-size: 1.6rem; font-family: 'Exocet', serif; }
+  .top-links { text-align: center; margin-bottom: 16px; display: flex; justify-content: center; gap: 12px; }
+  .top-links a { color: #a0a0b0; font-size: 0.85rem; text-decoration: none; padding: 5px 12px; border: 1px solid #0f3460; border-radius: 4px; transition: all 0.15s; }
+  .top-links a:hover { color: #c4a84f; border-color: #c4a84f; }
+  .top-links .report-btn { border-color: #553333; color: #cc8888; }
+  .top-links .report-btn:hover { border-color: #cc4444; color: #ff6666; }
   .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap; }
   .panel { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 16px; flex: 1; min-width: 320px; }
   .panel h2 { color: #c4a84f; font-size: 1.1rem; margin-bottom: 12px; border-bottom: 1px solid #0f3460; padding-bottom: 8px; font-family: 'Exocet', serif; }
@@ -75,6 +80,10 @@
 </head>
 <body>
 <h1>PD2 Theoretical Item Builder</h1>
+<div class="top-links">
+  <a href="https://maaaaaarrk.github.io/Hiim-PD2-Resources/" target="_blank">Hiim PD2 Resources</a>
+  <a href="https://github.com/Maaaaaarrk/pd2_item/issues" target="_blank" class="report-btn">Report an Issue</a>
+</div>
 <div class="container">
   <!-- Left Panel: Selection -->
   <div class="panel" style="flex: 1.2;">
