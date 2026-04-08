@@ -1359,6 +1359,21 @@ function renderPreview() {
     html += '<div class="item-name ' + (state.quality === 'crafted' ? 'crafted' : (state.quality === 'magic' ? 'magic' : 'rare')) + '">' + esc(item.name) + '</div>';
     html += '<div style="color:#888; font-size:0.85rem; font-style:italic; margin: 10px 0;">Fuzzy Affixes mode - showing combination odds</div>';
 
+    // Affix count probabilities for fuzzy mode
+    var fuzzySlotDist = getSlotDistribution(state.quality, state.category, state.ilvl);
+    var fuzzyCountProbs = {};
+    for (var fdi = 0; fdi < fuzzySlotDist.length; fdi++) {
+      var ft = fuzzySlotDist[fdi].pre + fuzzySlotDist[fdi].suf;
+      fuzzyCountProbs[ft] = (fuzzyCountProbs[ft] || 0) + fuzzySlotDist[fdi].prob;
+    }
+    var fuzzyCountKeys = Object.keys(fuzzyCountProbs).map(Number).sort(function(a, b) { return a - b; });
+    var fuzzyAffixDesc = getAffixCountDesc(state.quality, state.category, state.ilvl);
+    html += '<div style="color:#a0a0b0; font-size:0.8rem; margin-bottom:8px;">' + fuzzyAffixDesc;
+    if (fuzzyCountKeys.length > 1) {
+      html += ' &mdash; ' + fuzzyCountKeys.map(function(n) { return n + ': ' + (fuzzyCountProbs[n] * 100).toFixed(1) + '%'; }).join(' | ');
+    }
+    html += '</div>';
+
     var fuzzyResult = computeFuzzyOdds();
     if (fuzzyResult) {
       html += '<div class="fuzzy-results">';
@@ -1369,8 +1384,8 @@ function renderPreview() {
         html += '<div class="fuzzy-stat" style="color:#cc4444;">Warning: some selected affixes are not eligible at current alvl</div>';
       }
       html += '<div class="separator"></div>';
-      html += '<div class="fuzzy-stat">Valid combinations (>= ' + fuzzyResult.minMatch + ' match): <span class="val">' + shortNum(fuzzyResult.validCombinations) + '</span></div>';
-      html += '<div class="fuzzy-stat">Total possible combinations: <span class="val">' + shortNum(fuzzyResult.totalCombinations) + '</span></div>';
+      html += '<div class="fuzzy-stat">Valid combinations (>= ' + fuzzyResult.minMatch + ' match): <span class="val">' + shortNum(Math.round(fuzzyResult.validCombinations)) + '</span></div>';
+      html += '<div class="fuzzy-stat">Total possible combinations: <span class="val">' + shortNum(Math.round(fuzzyResult.totalCombinations)) + '</span></div>';
       if (fuzzyResult.capped) {
         html += '<div class="fuzzy-stat" style="color:#cc8844;">Note: large pool - enumeration capped, results are approximate</div>';
       }
@@ -1387,7 +1402,7 @@ function renderPreview() {
         html += '<div class="lld-section">';
         html += '<div class="lld-header">LLD Eligibility (Req Level &le; 30)</div>';
         if (fuzzyResult.lldValidCombinations > 0) {
-          html += '<div class="lld-odds">LLD-eligible matching combinations: <span class="lld-value">' + shortNum(fuzzyResult.lldValidCombinations) + '</span> of ' + shortNum(fuzzyResult.validCombinations) + '</div>';
+          html += '<div class="lld-odds">LLD-eligible matching combinations: <span class="lld-value">' + shortNum(Math.round(fuzzyResult.lldValidCombinations)) + '</span> of ' + shortNum(Math.round(fuzzyResult.validCombinations)) + '</div>';
           html += '<div class="lld-odds">Chance a matching combo is also LLD: <span class="lld-value">' + fuzzyResult.lldPercentage.toFixed(2) + '%</span></div>';
           var overallLLD = fuzzyResult.totalCombinations > 0 ? (fuzzyResult.lldValidCombinations / fuzzyResult.totalCombinations * 100) : 0;
           html += '<div class="lld-odds">Overall LLD + match chance: <span class="lld-value">' + overallLLD.toFixed(4) + '%</span></div>';
