@@ -18,8 +18,11 @@
   .panel { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 16px; flex: 1; min-width: 320px; }
   .panel h2 { color: #c4a84f; font-size: 1.1rem; margin-bottom: 12px; border-bottom: 1px solid #0f3460; padding-bottom: 8px; font-family: 'Exocet', serif; }
   label { display: block; font-size: 0.85rem; color: #a0a0b0; margin-bottom: 4px; margin-top: 10px; }
-  select, input[type="text"] { width: 100%; padding: 8px; background: #0f3460; border: 1px solid #1a4080; color: #e0e0e0; border-radius: 4px; font-size: 0.9rem; }
+  select, input[type="text"], input[type="number"] { width: 100%; padding: 8px; background: #0f3460; border: 1px solid #1a4080; color: #e0e0e0; border-radius: 4px; font-size: 0.9rem; }
   select:focus, input:focus { outline: none; border-color: #c4a84f; }
+  input[type="checkbox"] { appearance: none; width: 16px; height: 16px; background: #0f3460; border: 1px solid #1a4080; border-radius: 3px; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
+  input[type="checkbox"]:checked { background: #c4a84f; border-color: #c4a84f; }
+  input[type="checkbox"]:checked::after { content: '\2713'; display: block; text-align: center; color: #1a1a2e; font-size: 12px; line-height: 16px; font-weight: bold; }
   .quality-btns { display: flex; gap: 8px; margin-top: 10px; }
   .quality-btns button { flex: 1; padding: 10px; border: 2px solid #0f3460; background: #0f3460; color: #e0e0e0; border-radius: 4px; cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: all 0.15s; }
   .quality-btns button:hover { border-color: #c4a84f; }
@@ -113,6 +116,14 @@
       <label class="eth-toggle"><input type="checkbox" id="eth-check" onchange="toggleEthereal()"> Ethereal (+25% base stats, 1 in 20)</label>
     </div>
 
+    <div id="ilvl-area" style="display:none; margin-top: 10px;">
+      <label for="ilvl-input">Item Level (ilvl) <span id="alvl-display" style="color:#888; font-size:0.8rem;"></span></label>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input type="number" id="ilvl-input" min="1" max="99" value="99" style="flex:1;" onchange="onIlvlChange()" oninput="onIlvlChange()">
+        <button id="btn-optimal" onclick="findOptimalIlvl()" style="padding:6px 10px; background:#0f3460; border:1px solid #1a4080; color:#c4a84f; border-radius:4px; cursor:pointer; font-size:0.8rem; white-space:nowrap;">Best ilvl</button>
+      </div>
+    </div>
+
     <div id="affix-area" style="display:none;">
       <div class="affix-section">
         <h3 id="prefix-header">Prefixes</h3>
@@ -156,7 +167,7 @@ const miscItems = [
   { name: 'Grand Charm', code: 'cm3', type: 'lcha', level: '1', levelreq: '0', category: 'charm' },
 ];
 
-let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, selectedPrefixes: [], selectedSuffixes: [], rareName: '' };
+let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, ilvl: 99, selectedPrefixes: [], selectedSuffixes: [], rareName: '' };
 
 // --- Tier detection: Normal / Exceptional / Elite ---
 function getItemTier(item) {
@@ -244,7 +255,33 @@ function getItemTypeSets(item) {
   return { fullChain, direct };
 }
 
-// --- Get valid affixes for an item base + quality ---
+// --- alvl calculation (from d2mods.info article 234) ---
+function calcAlvl(ilvl, item) {
+  let il = Math.min(ilvl, 99);
+  const qlvl = parseInt(item.level) || 0;
+  const magicLvl = parseInt(item['magic lvl']) || 0;
+  if (qlvl > il) il = qlvl;
+  let alvl;
+  if (magicLvl > 0) {
+    alvl = il + magicLvl;
+  } else {
+    if (il < (99 - Math.floor(qlvl / 2))) {
+      alvl = il - Math.floor(qlvl / 2);
+    } else {
+      alvl = 2 * il - 99;
+    }
+  }
+  return Math.min(alvl, 99);
+}
+
+// --- Check if affix is eligible at a given alvl ---
+function affixEligibleAtAlvl(affix, alvl) {
+  const affixLvl = parseInt(affix.level) || 0;
+  const affixMaxLvl = affix.maxlevel ? parseInt(affix.maxlevel) : 99;
+  return affixLvl <= alvl && alvl <= affixMaxLvl;
+}
+
+// --- Get valid affixes for an item base + quality (type match only, no ilvl filter) ---
 function getValidAffixes(affixList, item, quality) {
   const { fullChain, direct } = getItemTypeSets(item);
 
@@ -253,6 +290,11 @@ function getValidAffixes(affixList, item, quality) {
     if (quality === 'rare' && a.rare !== '1') return false;
     return affixMatchesItem(a, fullChain, direct);
   });
+}
+
+// --- Filter a valid affix list by alvl eligibility ---
+function filterByAlvl(affixList, alvl) {
+  return affixList.filter(a => affixEligibleAtAlvl(a, alvl));
 }
 
 // --- Helper to reset downstream controls ---
@@ -281,8 +323,11 @@ function resetFrom(level) {
   }
   state.quality = '';
   state.ethereal = false;
+  state.ilvl = 99;
   document.getElementById('eth-check').checked = false;
   document.getElementById('ethereal-area').style.display = 'none';
+  document.getElementById('ilvl-area').style.display = 'none';
+  document.getElementById('ilvl-input').value = 99;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
   btnMagic.disabled = true;
@@ -442,6 +487,9 @@ function setQuality(q) {
   state.selectedSuffixes = [];
   document.getElementById('btn-magic').className = q === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = q === 'rare' ? 'active-rare' : '';
+  // Show ilvl input
+  document.getElementById('ilvl-area').style.display = 'block';
+  updateAlvlDisplay();
   // Roll a random rare name when switching to rare
   if (q === 'rare') {
     const items = getCategoryItems();
@@ -451,6 +499,104 @@ function setQuality(q) {
     state.rareName = '';
   }
   buildAffixSlots();
+  renderPreview();
+}
+
+function onIlvlChange() {
+  const val = parseInt(document.getElementById('ilvl-input').value) || 1;
+  state.ilvl = Math.max(1, Math.min(99, val));
+  updateAlvlDisplay();
+  renderPreview();
+}
+
+function updateAlvlDisplay() {
+  if (state.baseIndex < 0) return;
+  const items = getCategoryItems();
+  const item = items[state.baseIndex];
+  const alvl = calcAlvl(state.ilvl, item);
+  document.getElementById('alvl-display').textContent = '(alvl: ' + alvl + ')';
+}
+
+function findOptimalIlvl() {
+  if (state.baseIndex < 0 || !state.quality) return;
+  const items = getCategoryItems();
+  const item = items[state.baseIndex];
+
+  const validPre = state._validPrefixes || [];
+  const validSuf = state._validSuffixes || [];
+
+  // Gather selected affixes
+  const selPre = state.selectedPrefixes.filter(i => i >= 0).map(i => validPre[i]).filter(Boolean);
+  const selSuf = state.selectedSuffixes.filter(i => i >= 0).map(i => validSuf[i]).filter(Boolean);
+  if (selPre.length === 0 && selSuf.length === 0) return;
+
+  let bestIlvl = 1;
+  let bestProb = 0;
+
+  const isJewelRare = state.quality === 'rare' && state.category === 'jewel';
+  const preSlots = state.quality === 'rare' ? 3 : 1;
+  const sufSlots = state.quality === 'rare' ? 3 : 1;
+
+  for (let testIlvl = 1; testIlvl <= 99; testIlvl++) {
+    const alvl = calcAlvl(testIlvl, item);
+
+    // Check all selected affixes are eligible at this alvl
+    const allEligible = [...selPre, ...selSuf].every(a => affixEligibleAtAlvl(a, alvl));
+    if (!allEligible) continue;
+
+    // Calculate pool sizes at this alvl
+    const eligPre = filterByAlvl(validPre, alvl);
+    const eligSuf = filterByAlvl(validSuf, alvl);
+
+    const preTotalFreq = eligPre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const sufTotalFreq = eligSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+
+    let prob = 1;
+    if (isJewelRare) {
+      let prodPre = 1, prodSuf = 1;
+      for (const a of selPre) {
+        const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+        prodPre *= preTotalFreq > 0 ? f / preTotalFreq : 0;
+      }
+      for (const a of selSuf) {
+        const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+        prodSuf *= sufTotalFreq > 0 ? f / sufTotalFreq : 0;
+      }
+      const Np = selPre.length, Ns = selSuf.length;
+      const wildCount = Math.max(0, (Np - 1) + (Ns - 1));
+      let wildArr = 1;
+      for (let i = 0; i < wildCount; i++) wildArr *= (2 - i);
+      prob = prodPre * prodSuf * Math.max(Np, 1) * Math.max(Ns, 1) * wildArr;
+    } else {
+      if (selPre.length > 0) {
+        let p = 1;
+        for (let i = 0; i < selPre.length; i++) p *= (preSlots - i);
+        for (const a of selPre) {
+          const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+          p *= preTotalFreq > 0 ? f / preTotalFreq : 0;
+        }
+        prob *= p;
+      }
+      if (selSuf.length > 0) {
+        let p = 1;
+        for (let i = 0; i < selSuf.length; i++) p *= (sufSlots - i);
+        for (const a of selSuf) {
+          const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+          p *= sufTotalFreq > 0 ? f / sufTotalFreq : 0;
+        }
+        prob *= p;
+      }
+    }
+
+    if (prob > bestProb) {
+      bestProb = prob;
+      bestIlvl = testIlvl;
+    }
+  }
+
+  state.ilvl = bestIlvl;
+  document.getElementById('ilvl-input').value = bestIlvl;
+  updateAlvlDisplay();
   renderPreview();
 }
 
@@ -760,12 +906,15 @@ function renderPreview() {
 
   // Odds section
   if (selPre.length > 0 || selSuf.length > 0) {
-    const preTotalFreq = validPrefixes.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-    const sufTotalFreq = validSuffixes.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const alvl = calcAlvl(state.ilvl, item);
+    const eligPre = filterByAlvl(validPrefixes, alvl);
+    const eligSuf = filterByAlvl(validSuffixes, alvl);
+    const preTotalFreq = eligPre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const sufTotalFreq = eligSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
 
     html += '<div class="separator"></div>';
     html += '<div class="odds-section">';
-    html += '<h4>Roll Odds</h4>';
+    html += '<h4>Roll Odds (alvl ' + alvl + ', ' + eligPre.length + ' prefixes / ' + eligSuf.length + ' suffixes in pool)</h4>';
 
     // Rare: 3 prefix slots, 3 suffix slots, all always roll
     // Magic: 1 prefix slot, 1 suffix slot, both always roll
@@ -774,28 +923,30 @@ function renderPreview() {
     const preSlots = state.quality === 'rare' ? 3 : 1;
     const sufSlots = state.quality === 'rare' ? 3 : 1;
 
-    // Individual affix odds (per single roll from pool)
+    // Individual affix odds (per single roll from alvl-filtered pool)
     const preProbs = [];
     for (const a of selPre) {
+      const eligible = affixEligibleAtAlvl(a, alvl);
       const freq = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
-      const prob = preTotalFreq > 0 ? freq / preTotalFreq : 0;
+      const prob = eligible && preTotalFreq > 0 ? freq / preTotalFreq : 0;
       preProbs.push(prob);
       const ratio = prob > 0 ? Math.round(1 / prob) : 0;
       html += '<div class="odds-row">';
-      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + '</span>';
-      html += '<span class="odds-pct">' + oddsText(ratio) + '</span>';
+      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + (!eligible ? ' <span style="color:#cc4444;">(needs alvl ' + a.level + (a.maxlevel ? '-' + a.maxlevel : '+') + ')</span>' : '') + '</span>';
+      html += '<span class="odds-pct">' + (eligible ? oddsText(ratio) : '<span style="color:#cc4444;">impossible</span>') + '</span>';
       html += '</div>';
     }
 
     const sufProbs = [];
     for (const a of selSuf) {
+      const eligible = affixEligibleAtAlvl(a, alvl);
       const freq = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
-      const prob = sufTotalFreq > 0 ? freq / sufTotalFreq : 0;
+      const prob = eligible && sufTotalFreq > 0 ? freq / sufTotalFreq : 0;
       sufProbs.push(prob);
       const ratio = prob > 0 ? Math.round(1 / prob) : 0;
       html += '<div class="odds-row">';
-      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + '</span>';
-      html += '<span class="odds-pct">' + oddsText(ratio) + '</span>';
+      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + (!eligible ? ' <span style="color:#cc4444;">(needs alvl ' + a.level + (a.maxlevel ? '-' + a.maxlevel : '+') + ')</span>' : '') + '</span>';
+      html += '<span class="odds-pct">' + (eligible ? oddsText(ratio) : '<span style="color:#cc4444;">impossible</span>') + '</span>';
       html += '</div>';
     }
 
@@ -1148,6 +1299,7 @@ function stateToHash() {
   const item = items[state.baseIndex];
   const parts = ['b=' + item.code, 'q=' + state.quality[0]];
   if (state.ethereal) parts.push('e=1');
+  if (state.ilvl !== 99) parts.push('i=' + state.ilvl);
 
   // Map selected valid-pool indices to global prefix/suffix indices
   const validPre = state._validPrefixes || [];
@@ -1242,6 +1394,10 @@ function loadFromHash() {
   state.quality = quality;
   state.ethereal = params.e === '1';
   document.getElementById('eth-check').checked = state.ethereal;
+  state.ilvl = params.i ? Math.max(1, Math.min(99, parseInt(params.i) || 99)) : 99;
+  document.getElementById('ilvl-input').value = state.ilvl;
+  document.getElementById('ilvl-area').style.display = 'block';
+  updateAlvlDisplay();
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
   document.getElementById('btn-magic').className = quality === 'magic' ? 'active-magic' : '';
