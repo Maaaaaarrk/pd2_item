@@ -21,90 +21,93 @@
     font-style: normal;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; padding: 20px; }
-  h1 { text-align: center; color: #c4a84f; margin-bottom: 20px; font-size: 1.6rem; font-family: 'Exocet', serif; }
+  body { font-family: 'Exocet', Georgia, 'Times New Roman', serif; background: #0a0a0a; color: #c0b377; min-height: 100vh; padding: 20px; }
+  h1 { text-align: center; color: #d4b44a; margin-bottom: 20px; font-size: 1.6rem; font-family: 'Exocet', serif; text-shadow: 1px 1px 3px #000; letter-spacing: 2px; }
   .top-links { text-align: center; margin-bottom: 16px; display: flex; justify-content: center; gap: 12px; }
-  .top-links a { color: #a0a0b0; font-size: 0.85rem; text-decoration: none; padding: 5px 12px; border: 1px solid #0f3460; border-radius: 4px; transition: all 0.15s; }
-  .top-links a:hover { color: #c4a84f; border-color: #c4a84f; }
-  .top-links .report-btn { border-color: #553333; color: #cc8888; }
-  .top-links .report-btn:hover { border-color: #cc4444; color: #ff6666; }
+  .top-links a { color: #8a7e5a; font-size: 0.85rem; text-decoration: none; padding: 5px 12px; border: 1px solid #3a3228; border-radius: 2px; transition: all 0.15s; background: #1a1610; }
+  .top-links a:hover { color: #d4b44a; border-color: #6b5c3e; }
+  .top-links .report-btn { border-color: #4a2020; color: #a05050; }
+  .top-links .report-btn:hover { border-color: #802020; color: #cc4444; }
   .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap; }
-  .panel { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: 16px; flex: 1; min-width: 320px; }
-  .panel h2 { color: #c4a84f; font-size: 1.1rem; margin-bottom: 12px; border-bottom: 1px solid #0f3460; padding-bottom: 8px; font-family: 'Exocet', serif; }
-  label { display: block; font-size: 0.85rem; color: #a0a0b0; margin-bottom: 4px; margin-top: 10px; }
-  select, input[type="text"], input[type="number"] { width: 100%; padding: 8px; background: #0f3460; border: 1px solid #1a4080; color: #e0e0e0; border-radius: 4px; font-size: 0.9rem; }
-  select:focus, input:focus { outline: none; border-color: #c4a84f; }
-  input[type="checkbox"] { appearance: none; width: 16px; height: 16px; background: #0f3460; border: 1px solid #1a4080; border-radius: 3px; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
-  input[type="checkbox"]:checked { background: #c4a84f; border-color: #c4a84f; }
-  input[type="checkbox"]:checked::after { content: '\2713'; display: block; text-align: center; color: #1a1a2e; font-size: 12px; line-height: 16px; font-weight: bold; }
+  .panel { background: #151210; border: 2px solid #3a3228; border-radius: 2px; padding: 16px; flex: 1; min-width: 320px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.8); border-image: linear-gradient(180deg, #5a4d38, #2a2318, #3a3228) 1; }
+  .panel h2 { color: #d4b44a; font-size: 1.1rem; margin-bottom: 12px; border-bottom: 1px solid #3a3228; padding-bottom: 8px; font-family: 'Exocet', serif; text-shadow: 1px 1px 2px #000; }
+  label { display: block; font-size: 0.85rem; color: #8a7e5a; margin-bottom: 4px; margin-top: 10px; }
+  select, input[type="text"], input[type="number"] { width: 100%; padding: 8px; background: #1a1610; border: 1px solid #3a3228; color: #c0b377; border-radius: 2px; font-size: 0.9rem; font-family: 'Exocet', Georgia, serif; }
+  select:disabled, input[type="text"]:disabled, input[type="number"]:disabled { background: #0e0c08; border-color: #252018; color: #3a3228; cursor: not-allowed; opacity: 0.6; }
+  select:focus, input:focus { outline: none; border-color: #6b5c3e; }
+  select option { background: #1a1610; color: #c0b377; }
+  input[type="checkbox"] { appearance: none; width: 16px; height: 16px; background: #1a1610; border: 1px solid #3a3228; border-radius: 2px; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
+  input[type="checkbox"]:checked { background: #6b5c3e; border-color: #d4b44a; }
+  input[type="checkbox"]:checked::after { content: '\2713'; display: block; text-align: center; color: #d4b44a; font-size: 12px; line-height: 16px; font-weight: bold; }
   .quality-btns { display: flex; gap: 8px; margin-top: 10px; }
-  .quality-btns button { flex: 1; padding: 10px; border: 2px solid #0f3460; background: #0f3460; color: #e0e0e0; border-radius: 4px; cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: all 0.15s; }
-  .quality-btns button:hover { border-color: #c4a84f; }
-  .quality-btns button.active-magic { border-color: #4169e1; background: #1a3a7a; color: #6495ed; }
-  .quality-btns button.active-rare { border-color: #cccc00; background: #3a3a0a; color: #ffff44; }
-  .quality-btns button.active-crafted { border-color: #ff8c00; background: #3a2a0a; color: #ffa500; }
+  .quality-btns button { flex: 1; padding: 10px; border: 2px solid #3a3228; background: #1a1610; color: #8a7e5a; border-radius: 2px; cursor: pointer; font-size: 0.95rem; font-weight: bold; transition: all 0.15s; font-family: 'Exocet', Georgia, serif; }
+  .quality-btns button:hover:not(:disabled) { border-color: #6b5c3e; color: #c0b377; }
+  .quality-btns button:disabled { background: #0e0c08; border-color: #252018; color: #3a3228; cursor: not-allowed; opacity: 0.6; }
+  .quality-btns button.active-magic { border-color: #4169e1; background: #12101a; color: #6495ed; }
+  .quality-btns button.active-rare { border-color: #cccc00; background: #1a1a08; color: #ffff44; }
+  .quality-btns button.active-crafted { border-color: #ff8c00; background: #1a1208; color: #ffa500; }
   .affix-section { margin-top: 14px; }
-  .affix-section h3 { font-size: 0.95rem; color: #8899aa; margin-bottom: 6px; }
+  .affix-section h3 { font-size: 0.95rem; color: #8a7e5a; margin-bottom: 6px; }
   .affix-slot { margin-bottom: 8px; position: relative; }
   .affix-slot select { font-size: 0.85rem; }
   .affix-list-filter { margin-bottom: 6px; }
-  .item-preview { background: #000; border: 1px solid #333; border-radius: 6px; padding: 20px; text-align: center; min-height: 200px; font-family: 'Exocet', serif; }
+  .item-preview { background: #000; border: 2px solid #3a3228; border-radius: 2px; padding: 20px; text-align: center; min-height: 200px; font-family: 'Exocet', serif; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); }
   .item-preview .item-name { font-size: 1.3rem; font-weight: bold; margin-bottom: 12px; font-family: 'Exocet', serif; letter-spacing: 1px; }
   .item-preview .item-name.magic { color: #6495ed; }
   .item-preview .item-name.rare { color: #ffff44; }
   .item-preview .item-name.crafted { color: #ffa500; }
-  .item-preview .base-stats { color: #8888aa; font-size: 0.9rem; margin-bottom: 10px; }
+  .item-preview .base-stats { color: #7a7468; font-size: 0.9rem; margin-bottom: 10px; }
   .item-preview .base-stats div { margin: 2px 0; }
   .item-preview .affix-stats { color: #4169e1; font-size: 0.9rem; text-align: left; display: inline-block; }
   .item-preview .affix-stats div { margin: 2px 0; }
   .item-preview .affix-stats .prefix-stat { color: #6495ed; }
   .item-preview .affix-stats .suffix-stat { color: #6495ed; }
-  .item-preview .req { color: #666; font-size: 0.85rem; margin-top: 8px; }
-  .item-preview .separator { border-top: 1px solid #333; margin: 8px 0; }
-  .no-item { color: #555; font-style: italic; margin-top: 60px; }
+  .item-preview .req { color: #555040; font-size: 0.85rem; margin-top: 8px; }
+  .item-preview .separator { border-top: 1px solid #2a2418; margin: 8px 0; }
+  .no-item { color: #3a3228; font-style: italic; margin-top: 60px; }
   .mod-line { margin: 1px 0; }
-  .mod-range { color: #888; font-size: 0.8rem; }
+  .mod-range { color: #6b5c3e; font-size: 0.8rem; }
   .item-preview .base-name { color: #ffff44; font-size: 0.95rem; margin-bottom: 10px; }
-  .eth-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; color: #a0a0b0; }
+  .eth-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; color: #8a7e5a; }
   .eth-toggle input { cursor: pointer; }
-  .item-preview .ethereal-tag { color: #888; font-size: 0.85rem; font-style: italic; margin-bottom: 4px; }
-  .reroll-btn { cursor: pointer; font-size: 1rem; color: #888; margin-left: 6px; vertical-align: middle; }
-  .reroll-btn:hover { color: #ffff44; }
+  .item-preview .ethereal-tag { color: #6b5c3e; font-size: 0.85rem; font-style: italic; margin-bottom: 4px; }
+  .reroll-btn { cursor: pointer; font-size: 1rem; color: #6b5c3e; margin-left: 6px; vertical-align: middle; }
+  .reroll-btn:hover { color: #d4b44a; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .btn-spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #c4a84f44; border-top-color: #c4a84f; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
+  .btn-spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #3a322844; border-top-color: #d4b44a; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; }
   .odds-section { margin-top: 12px; text-align: left; display: inline-block; width: 100%; }
-  .odds-section h4 { color: #c4a84f; font-size: 0.85rem; margin-bottom: 8px; font-family: 'Exocet', serif; }
+  .odds-section h4 { color: #d4b44a; font-size: 0.85rem; margin-bottom: 8px; font-family: 'Exocet', serif; }
   .odds-row { display: flex; align-items: center; justify-content: space-between; margin: 4px 0; font-size: 0.8rem; }
-  .odds-label { color: #a0a0b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .odds-pct { color: #e0e0e0; min-width: 70px; text-align: right; font-size: 0.75rem; white-space: nowrap; margin-left: 8px; }
-  .odds-combined { margin-top: 10px; padding-top: 8px; border-top: 1px solid #333; text-align: center; }
-  .odds-combined .label { color: #a0a0b0; font-size: 0.8rem; }
-  .odds-combined .value { color: #c4a84f; font-size: 1.1rem; font-family: 'Exocet', serif; }
+  .odds-label { color: #8a7e5a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .odds-pct { color: #c0b377; min-width: 70px; text-align: right; font-size: 0.75rem; white-space: nowrap; margin-left: 8px; }
+  .odds-combined { margin-top: 10px; padding-top: 8px; border-top: 1px solid #2a2418; text-align: center; }
+  .odds-combined .label { color: #8a7e5a; font-size: 0.8rem; }
+  .odds-combined .value { color: #d4b44a; font-size: 1.1rem; font-family: 'Exocet', serif; }
 
-  .lld-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #333; }
-  .lld-section .lld-header { color: #c4a84f; font-size: 0.85rem; margin-bottom: 6px; font-family: 'Exocet', serif; }
+  .lld-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #2a2418; }
+  .lld-section .lld-header { color: #d4b44a; font-size: 0.85rem; margin-bottom: 6px; font-family: 'Exocet', serif; }
   .lld-section .lld-eligible { color: #44cc44; font-size: 0.9rem; font-weight: bold; }
   .lld-section .lld-ineligible { color: #cc4444; font-size: 0.9rem; }
-  .lld-section .lld-odds { color: #a0a0b0; font-size: 0.8rem; margin-top: 4px; }
+  .lld-section .lld-odds { color: #8a7e5a; font-size: 0.8rem; margin-top: 4px; }
   .lld-section .lld-odds .lld-value { color: #44cc44; font-family: 'Exocet', serif; font-size: 1rem; }
 
   /* Fuzzy Affixes mode styles */
-  .mode-toggle { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 0.85rem; color: #a0a0b0; }
+  .mode-toggle { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 0.85rem; color: #8a7e5a; }
   .mode-toggle label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; margin: 0; }
-  .mode-toggle input[type="radio"] { appearance: none; width: 14px; height: 14px; border: 1px solid #1a4080; border-radius: 50%; background: #0f3460; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
-  .mode-toggle input[type="radio"]:checked { background: #c4a84f; border-color: #c4a84f; }
+  .mode-toggle input[type="radio"] { appearance: none; width: 14px; height: 14px; border: 1px solid #3a3228; border-radius: 50%; background: #1a1610; cursor: pointer; vertical-align: middle; flex-shrink: 0; }
+  .mode-toggle input[type="radio"]:checked { background: #6b5c3e; border-color: #d4b44a; }
   .fuzzy-controls { margin-top: 10px; }
-  .fuzzy-controls label { font-size: 0.85rem; color: #a0a0b0; margin-bottom: 4px; }
+  .fuzzy-controls label { font-size: 0.85rem; color: #8a7e5a; margin-bottom: 4px; }
   .fuzzy-controls select { width: auto; min-width: 60px; }
-  .add-affix-btn { margin-top: 8px; padding: 6px 14px; background: #0f3460; border: 1px solid #1a4080; color: #c4a84f; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-  .add-affix-btn:hover { border-color: #c4a84f; }
-  .remove-affix-btn { position: absolute; right: 4px; top: 4px; background: none; border: none; color: #cc4444; cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 6px; }
-  .remove-affix-btn:hover { color: #ff4444; }
+  .add-affix-btn { margin-top: 8px; padding: 6px 14px; background: #1a1610; border: 1px solid #3a3228; color: #d4b44a; border-radius: 2px; cursor: pointer; font-size: 0.85rem; font-family: 'Exocet', Georgia, serif; }
+  .add-affix-btn:hover { border-color: #6b5c3e; }
+  .remove-affix-btn { position: absolute; right: 4px; top: 4px; background: none; border: none; color: #802020; cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 6px; }
+  .remove-affix-btn:hover { color: #cc4444; }
   .fuzzy-results { margin-top: 12px; text-align: center; }
-  .fuzzy-results .fuzzy-header { color: #c4a84f; font-size: 0.95rem; font-family: 'Exocet', serif; margin-bottom: 8px; }
-  .fuzzy-results .fuzzy-stat { color: #a0a0b0; font-size: 0.85rem; margin: 4px 0; }
-  .fuzzy-results .fuzzy-stat .val { color: #e0e0e0; }
-  .fuzzy-results .fuzzy-pct { color: #c4a84f; font-size: 1.2rem; font-family: 'Exocet', serif; margin-top: 8px; }
+  .fuzzy-results .fuzzy-header { color: #d4b44a; font-size: 0.95rem; font-family: 'Exocet', serif; margin-bottom: 8px; }
+  .fuzzy-results .fuzzy-stat { color: #8a7e5a; font-size: 0.85rem; margin: 4px 0; }
+  .fuzzy-results .fuzzy-stat .val { color: #c0b377; }
+  .fuzzy-results .fuzzy-pct { color: #d4b44a; font-size: 1.2rem; font-family: 'Exocet', serif; margin-top: 8px; }
 </style>
 <script src="data/js/Armor.js"></script>
 <script src="data/js/Weapons.js"></script>
