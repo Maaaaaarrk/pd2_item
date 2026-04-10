@@ -1564,17 +1564,11 @@ function renderPreview() {
         html += '</div>';
       }
 
-      // ilvl breakdown button
+      // ilvl breakdown button (computed on demand)
       html += '<div style="margin-top:10px; text-align:center;">';
-      html += '<button class="ilvl-breakdown-btn" onclick="toggleIlvlBreakdown(\'ilvl-bd-fuzzy\')">Show ilvl Breakdown</button>';
+      html += '<button class="ilvl-breakdown-btn" onclick="toggleIlvlBreakdown(\'ilvl-bd-fuzzy\', \'fuzzy\')">Show ilvl Breakdown</button>';
       html += '</div>';
-      html += '<div id="ilvl-bd-fuzzy" class="ilvl-breakdown" style="display:none;">';
-      html += buildIlvlBreakdownFuzzy(state.ilvl, false);
-      if (fuzzyResult.baseLLD && fuzzyResult.lldValidCombinations > 0) {
-        html += '<div style="margin-top:8px; color:#d4b44a; font-size:0.8rem; font-family:\'Exocet\',serif;">LLD Breakdown</div>';
-        html += buildIlvlBreakdownFuzzy(state.ilvl, true);
-      }
-      html += '</div>';
+      html += '<div id="ilvl-bd-fuzzy" class="ilvl-breakdown" style="display:none;"></div>';
     } else {
       html += '<div style="color:#555; margin-top: 20px;">Select at least one affix to see combination odds</div>';
     }
@@ -1834,17 +1828,11 @@ function renderPreview() {
       html += '</div>';
     }
 
-    // ilvl breakdown button
+    // ilvl breakdown button (computed on demand)
     html += '<div style="margin-top:10px; text-align:center;">';
-    html += '<button class="ilvl-breakdown-btn" onclick="toggleIlvlBreakdown(\'ilvl-bd-exact\')">Show ilvl Breakdown</button>';
+    html += '<button class="ilvl-breakdown-btn" onclick="toggleIlvlBreakdown(\'ilvl-bd-exact\', \'exact\')">Show ilvl Breakdown</button>';
     html += '</div>';
-    html += '<div id="ilvl-bd-exact" class="ilvl-breakdown" style="display:none;">';
-    html += buildIlvlBreakdownExact(item, validPrefixes, validSuffixes, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl);
-    if (allSelectedLLD && allSelectedAffixes.length > 0) {
-      html += '<div style="margin-top:8px; color:#d4b44a; font-size:0.8rem; font-family:\'Exocet\',serif;">LLD Breakdown</div>';
-      html += buildIlvlBreakdownExact(item, validPrefixes, validSuffixes, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl, LLD_MAX_LEVEL);
-    }
-    html += '</div>';
+    html += '<div id="ilvl-bd-exact" class="ilvl-breakdown" style="display:none;"></div>';
 
     html += '</div>';
   }
@@ -2251,10 +2239,55 @@ function buildBreakdownTable(rows, currentIlvl) {
   return html;
 }
 
-function toggleIlvlBreakdown(id) {
+function toggleIlvlBreakdown(id, mode) {
   var el = document.getElementById(id);
   if (!el) return;
-  el.style.display = el.style.display === 'none' ? '' : 'none';
+  if (el.style.display === 'none') {
+    // Compute on first show or if empty (state changed since last render)
+    if (!el.innerHTML) {
+      computeIlvlBreakdown(el, mode);
+    }
+    el.style.display = '';
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function computeIlvlBreakdown(el, mode) {
+  var items = getCategoryItems();
+  var item = items[state.baseIndex];
+  if (!item) return;
+
+  var html = '';
+  if (mode === 'fuzzy') {
+    html += buildIlvlBreakdownFuzzy(state.ilvl, false);
+    // Check if LLD applies
+    var pool = state._fuzzyPool || [];
+    var sel = state.fuzzyAffixes.filter(function(i) { return i >= 0; }).map(function(i) { return pool[i]; }).filter(Boolean);
+    var baseLLD = (parseInt(item.levelreq) || 0) <= 30;
+    if (baseLLD && sel.length > 0 && sel.every(function(a) { return (parseInt(a.levelreq) || 0) <= 30; })) {
+      // Check if there are actually LLD combinations
+      var testResult = computeFuzzyOdds();
+      if (testResult && testResult.lldValidCombinations > 0) {
+        html += '<div style="margin-top:8px; color:#d4b44a; font-size:0.8rem; font-family:\'Exocet\',serif;">LLD Breakdown</div>';
+        html += buildIlvlBreakdownFuzzy(state.ilvl, true);
+      }
+    }
+  } else {
+    var validPre = state._validPrefixes || [];
+    var validSuf = state._validSuffixes || [];
+    var selPre = state.selectedPrefixes.filter(function(i) { return i >= 0; }).map(function(i) { return validPre[i]; }).filter(Boolean);
+    var selSuf = state.selectedSuffixes.filter(function(i) { return i >= 0; }).map(function(i) { return validSuf[i]; }).filter(Boolean);
+    html += buildIlvlBreakdownExact(item, validPre, validSuf, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl);
+    // Check if LLD applies
+    var LLD_MAX = 30;
+    var allSel = selPre.concat(selSuf);
+    if (allSel.length > 0 && (parseInt(item.levelreq) || 0) <= LLD_MAX && allSel.every(function(a) { return (parseInt(a.levelreq) || 0) <= LLD_MAX; })) {
+      html += '<div style="margin-top:8px; color:#d4b44a; font-size:0.8rem; font-family:\'Exocet\',serif;">LLD Breakdown</div>';
+      html += buildIlvlBreakdownExact(item, validPre, validSuf, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl, LLD_MAX);
+    }
+  }
+  el.innerHTML = html;
 }
 
 function shortNum(n) {
