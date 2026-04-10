@@ -2184,12 +2184,14 @@ function buildIlvlBreakdownExact(item, validPre, validSuf, selPre, selSuf, quali
     }
     var ratio = Math.round(1 / prob);
     var text = shortNum(ratio);
-    rows.push({ ilvl: ilvl, text: text, ratio: ratio });
+    rows.push({ ilvl: ilvl, alvl: alvl, text: text, ratio: ratio });
   }
   return buildBreakdownTable(rows, currentIlvl);
 }
 
 function buildIlvlBreakdownFuzzy(currentIlvl, lld) {
+  var items = getCategoryItems();
+  var item = items[state.baseIndex];
   var rows = [];
   var savedIlvl = state.ilvl;
   for (var ilvl = 1; ilvl <= 99; ilvl++) {
@@ -2206,7 +2208,7 @@ function buildIlvlBreakdownFuzzy(currentIlvl, lld) {
     }
     var ratio = Math.round(100 / prob);
     var text = shortNum(ratio);
-    rows.push({ ilvl: ilvl, text: text, ratio: ratio });
+    rows.push({ ilvl: ilvl, alvl: calcAlvl(ilvl, item), text: text, ratio: ratio });
   }
   state.ilvl = savedIlvl;
   return buildBreakdownTable(rows, currentIlvl);
@@ -2216,22 +2218,24 @@ function buildBreakdownTable(rows, currentIlvl) {
   if (rows.length === 0) return '';
   // Group consecutive ilvls with the same shortNum text
   var groups = [];
-  var g = { lo: rows[0].ilvl, hi: rows[0].ilvl, text: rows[0].text };
+  var g = { lo: rows[0].ilvl, hi: rows[0].ilvl, alvlLo: rows[0].alvl, alvlHi: rows[0].alvl, text: rows[0].text };
   for (var i = 1; i < rows.length; i++) {
     if (rows[i].text === g.text && rows[i].ilvl === g.hi + 1) {
       g.hi = rows[i].ilvl;
+      g.alvlHi = rows[i].alvl;
     } else {
       groups.push(g);
-      g = { lo: rows[i].ilvl, hi: rows[i].ilvl, text: rows[i].text };
+      g = { lo: rows[i].ilvl, hi: rows[i].ilvl, alvlLo: rows[i].alvl, alvlHi: rows[i].alvl, text: rows[i].text };
     }
   }
   groups.push(g);
-  var html = '<table><tr><th>ilvl</th><th>Odds</th></tr>';
+  var html = '<table><tr><th>ilvl</th><th>alvl</th><th>Odds</th></tr>';
   for (var j = 0; j < groups.length; j++) {
     var gr = groups[j];
     var isCurrent = currentIlvl >= gr.lo && currentIlvl <= gr.hi;
     html += '<tr' + (isCurrent ? ' class="current"' : '') + '>';
     html += '<td>' + (gr.lo === gr.hi ? gr.lo : gr.lo + '-' + gr.hi) + '</td>';
+    html += '<td>' + (gr.alvlLo === gr.alvlHi ? gr.alvlLo : gr.alvlLo + '-' + gr.alvlHi) + '</td>';
     html += '<td>1 in ' + gr.text + '</td>';
     html += '</tr>';
   }
