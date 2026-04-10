@@ -1129,7 +1129,7 @@ function computeFuzzyOddsWeighted(slotDist, eligPre, eligSuf, selPreSet, selSufS
   function getGroupUniqueSubsets(pool, size) {
     if (size <= 0) return [[]];
     var results = [];
-    function recurse(start, current, usedGroups) {
+    function recurse(start, current, usedGroups, usedNames) {
       if (current.length === size) {
         results.push(current.slice());
         return;
@@ -1141,16 +1141,20 @@ function computeFuzzyOddsWeighted(slotDist, eligPre, eligSuf, selPreSet, selSufS
       if (remaining < needed) return;
       for (var i = start; i < pool.length; i++) {
         var grp = pool[i].group;
+        var nm = pool[i].Name;
         if (grp && usedGroups.has(grp)) continue;
+        if (nm && usedNames.has(nm)) continue;
         current.push(i);
         if (grp) usedGroups.add(grp);
-        recurse(i + 1, current, usedGroups);
+        if (nm) usedNames.add(nm);
+        recurse(i + 1, current, usedGroups, usedNames);
         current.pop();
         if (grp) usedGroups.delete(grp);
+        if (nm) usedNames.delete(nm);
         if (results.length > CAP) return;
       }
     }
-    recurse(0, [], new Set());
+    recurse(0, [], new Set(), new Set());
     return results;
   }
 
@@ -1294,17 +1298,19 @@ function buildAffixSlots() {
   }
 }
 
-// --- Get groups used by other slots of the same type, excluding the given slot ---
+// --- Get groups and names used by other slots of the same type, excluding the given slot ---
 function getUsedGroups(type, excludeSlot) {
   const arr = type === 'prefix' ? state.selectedPrefixes : state.selectedSuffixes;
   const pool = type === 'prefix' ? state._validPrefixes : state._validSuffixes;
   const groups = new Set();
+  const names = new Set();
   for (let i = 0; i < arr.length; i++) {
     if (i === excludeSlot || arr[i] < 0) continue;
     const affix = pool[arr[i]];
     if (affix && affix.group) groups.add(affix.group);
+    if (affix && affix.Name) names.add(affix.Name);
   }
-  return groups;
+  return { groups, names };
 }
 
 // --- Refresh all sibling slot options (to update group filtering) ---
@@ -1358,11 +1364,12 @@ function createAffixSelect(type, slotIndex, affixPool) {
     const currentVal = sel.value;
     sel.innerHTML = '<option value="-1">-- None --</option>';
     const ft = (filter.value || '').toLowerCase();
-    const usedGroups = getUsedGroups(type, slotIndex);
+    const { groups: usedGroups, names: usedNames } = getUsedGroups(type, slotIndex);
 
     affixPool.forEach((a, idx) => {
-      // Skip if this affix's group is already used by another slot
+      // Skip if this affix's group or name is already used by another slot
       if (a.group && usedGroups.has(a.group)) return;
+      if (a.Name && usedNames.has(a.Name)) return;
       // Build a description of what the affix does
       const desc = affixDescription(a);
       const lvlReq = parseInt(a.levelreq) || 0;
