@@ -106,6 +106,15 @@
   .add-affix-btn:hover { border-color: #6b5c3e; }
   .remove-affix-btn { position: absolute; right: 4px; top: 4px; background: none; border: none; color: #802020; cursor: pointer; font-size: 1rem; line-height: 1; padding: 2px 6px; }
   .remove-affix-btn:hover { color: #cc4444; }
+  .fuzzy-section { border: 1px solid #2a2318; border-radius: 2px; padding: 10px; margin-bottom: 10px; background: #12100c; position: relative; }
+  .fuzzy-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .fuzzy-section-header h4 { color: #d4b44a; font-size: 0.9rem; font-family: 'Exocet', serif; margin: 0; }
+  .fuzzy-section-header .remove-section-btn { background: none; border: 1px solid #4a2020; color: #a05050; cursor: pointer; font-size: 0.75rem; padding: 2px 8px; border-radius: 2px; font-family: 'Exocet', Georgia, serif; }
+  .fuzzy-section-header .remove-section-btn:hover { border-color: #802020; color: #cc4444; }
+  .fuzzy-section .section-min { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 0.85rem; color: #8a7e5a; }
+  .fuzzy-section .section-min select { width: auto; min-width: 50px; }
+  .add-section-btn { margin-top: 8px; padding: 8px 16px; background: #1a1610; border: 1px dashed #3a3228; color: #8a7e5a; border-radius: 2px; cursor: pointer; font-size: 0.85rem; font-family: 'Exocet', Georgia, serif; width: 100%; }
+  .add-section-btn:hover { border-color: #6b5c3e; color: #d4b44a; }
   .fuzzy-results { margin-top: 12px; text-align: center; }
   .fuzzy-results .fuzzy-header { color: #d4b44a; font-size: 0.95rem; font-family: 'Exocet', serif; margin-bottom: 8px; }
   .fuzzy-results .fuzzy-stat { color: #8a7e5a; font-size: 0.85rem; margin: 4px 0; }
@@ -188,15 +197,6 @@
     </div>
 
     <div id="fuzzy-controls" style="display:none; margin-top: 10px;">
-      <label for="fuzzy-min">Minimum # of affixes to match</label>
-      <select id="fuzzy-min" onchange="onFuzzyMinChange()">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-      </select>
     </div>
 
     <div id="ilvl-area" style="display:none; margin-top: 10px;">
@@ -222,9 +222,9 @@
 
     <div id="fuzzy-affix-area" style="display:none;">
       <div class="affix-section">
-        <h3>Desired Affixes (prefix or suffix)</h3>
-        <div id="fuzzy-affix-slots"></div>
-        <button class="add-affix-btn" onclick="addFuzzyAffixSlot()">+ Add Another Affix</button>
+        <h3>Fuzzy Affix Sections</h3>
+        <div id="fuzzy-sections-container"></div>
+        <button class="add-section-btn" onclick="addFuzzySection()">+ Add Another Section</button>
       </div>
     </div>
   </div>
@@ -260,7 +260,7 @@ const miscItems = [
   { name: 'Grand Charm', code: 'cm3', type: 'lcha', level: '1', levelreq: '0', category: 'charm' },
 ];
 
-let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, ilvl: 99, selectedPrefixes: [], selectedSuffixes: [], rareName: '', affixMode: 'exact', fuzzyMin: 1, fuzzyAffixes: [] };
+let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, ilvl: 99, selectedPrefixes: [], selectedSuffixes: [], rareName: '', affixMode: 'exact', fuzzyMin: 1, fuzzyAffixes: [], fuzzySections: [{ affixes: [], min: 1 }] };
 
 // --- Tier detection: Normal / Exceptional / Elite ---
 function getItemTier(item) {
@@ -563,6 +563,7 @@ function resetFrom(level) {
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
   state.fuzzyAffixes = [];
+  state.fuzzySections = [{ affixes: [], min: 1 }];
   state.affixMode = 'exact';
   var modeRadio = document.querySelector('input[name="affix-mode"][value="exact"]');
   if (modeRadio) modeRadio.checked = true;
@@ -733,6 +734,7 @@ function setQuality(q) {
   state.selectedSuffixes = [];
   clearIlvlRange();
   state.fuzzyAffixes = [];
+  state.fuzzySections = [{ affixes: [], min: 1 }];
   document.getElementById('btn-magic').className = q === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = q === 'rare' ? 'active-rare' : '';
   document.getElementById('btn-crafted').className = q === 'crafted' ? 'active-crafted' : '';
@@ -750,7 +752,7 @@ function setQuality(q) {
   }
   if (state.affixMode === 'fuzzy') {
     document.getElementById('affix-area').style.display = 'none';
-    buildFuzzyAffixSlots();
+    buildFuzzySections();
   } else {
     document.getElementById('fuzzy-affix-area').style.display = 'none';
     buildAffixSlots();
@@ -801,7 +803,11 @@ function _findOptimalIlvlWork(lld) {
   if (state.affixMode === 'fuzzy') {
     // Fuzzy mode: use computeFuzzyOdds at each ilvl to find the best
     const pool = state._fuzzyPool || [];
-    const selected = state.fuzzyAffixes.filter(i => i >= 0).map(i => pool[i]).filter(Boolean);
+    let selected = [];
+    for (let fsi = 0; fsi < state.fuzzySections.length; fsi++) {
+      const secAff = state.fuzzySections[fsi].affixes.filter(i => i >= 0).map(i => pool[i]).filter(Boolean);
+      selected = selected.concat(secAff);
+    }
     if (selected.length === 0) return;
 
     let bestIlvl = state.ilvl;
@@ -844,7 +850,7 @@ function _findOptimalIlvlWork(lld) {
     document.getElementById('ilvl-input').value = bestIlvl;
     updateAlvlDisplay();
     displayIlvlRange(rangeMin, rangeMax);
-    buildFuzzyAffixSlots();
+    buildFuzzySections();
     renderPreview();
     return;
   }
@@ -953,7 +959,7 @@ function setAffixMode(mode) {
     document.getElementById('fuzzy-controls').style.display = 'block';
     document.getElementById('affix-area').style.display = 'none';
     document.getElementById('fuzzy-affix-area').style.display = state.quality ? 'block' : 'none';
-    if (state.quality) buildFuzzyAffixSlots();
+    if (state.quality) buildFuzzySections();
   } else {
     document.getElementById('fuzzy-controls').style.display = 'none';
     document.getElementById('fuzzy-affix-area').style.display = 'none';
@@ -965,12 +971,13 @@ function setAffixMode(mode) {
   renderPreview();
 }
 
-function onFuzzyMinChange() {
-  state.fuzzyMin = parseInt(document.getElementById('fuzzy-min').value) || 1;
+function onFuzzySectionMinChange(sectionIndex) {
+  state.fuzzySections[sectionIndex].min = parseInt(document.getElementById('fuzzy-section-min-' + sectionIndex).value) || 1;
+  syncLegacyFuzzyState();
   renderPreview();
 }
 
-function buildFuzzyAffixSlots() {
+function buildFuzzyPool() {
   var items = getCategoryItems();
   var item = items[state.baseIndex];
   var validPrefixes = getValidAffixes(prefixes, item, state.quality);
@@ -978,149 +985,258 @@ function buildFuzzyAffixSlots() {
   state._validPrefixes = validPrefixes;
   state._validSuffixes = validSuffixes;
   state._fuzzyPool = validPrefixes.map(function(a) {
-    var copy = {};
-    for (var k in a) copy[k] = a[k];
-    copy._poolType = 'prefix';
-    return copy;
+    var copy = {}; for (var k in a) copy[k] = a[k]; copy._poolType = "prefix"; return copy;
   }).concat(validSuffixes.map(function(a) {
-    var copy = {};
-    for (var k in a) copy[k] = a[k];
-    copy._poolType = 'suffix';
-    return copy;
+    var copy = {}; for (var k in a) copy[k] = a[k]; copy._poolType = "suffix"; return copy;
   }));
+}
 
-  var container = document.getElementById('fuzzy-affix-slots');
-  container.innerHTML = '';
-  if (state.fuzzyAffixes.length === 0) {
-    state.fuzzyAffixes.push(-1);
+function buildFuzzySections() {
+  buildFuzzyPool();
+  if (state.fuzzySections.length === 0) state.fuzzySections.push({ affixes: [], min: 1 });
+  var container = document.getElementById("fuzzy-sections-container");
+  container.innerHTML = "";
+  for (var si = 0; si < state.fuzzySections.length; si++) container.appendChild(createFuzzySectionElement(si));
+  syncLegacyFuzzyState();
+  document.getElementById("fuzzy-affix-area").style.display = "block";
+}
+
+function syncLegacyFuzzyState() {
+  if (state.fuzzySections.length > 0) {
+    state.fuzzyAffixes = state.fuzzySections[0].affixes.slice();
+    state.fuzzyMin = state.fuzzySections[0].min;
   }
-  for (var i = 0; i < state.fuzzyAffixes.length; i++) {
-    container.appendChild(createFuzzyAffixSelect(i));
+}
+
+function createFuzzySectionElement(sectionIndex) {
+  var section = state.fuzzySections[sectionIndex];
+  var div = document.createElement("div");
+  div.className = "fuzzy-section";
+  div.id = "fuzzy-section-" + sectionIndex;
+  var header = document.createElement("div");
+  header.className = "fuzzy-section-header";
+  var title = document.createElement("h4");
+  title.textContent = "Section " + (sectionIndex + 1);
+  header.appendChild(title);
+  if (state.fuzzySections.length > 1) {
+    var removeBtn = document.createElement("button");
+    removeBtn.className = "remove-section-btn";
+    removeBtn.textContent = "Remove Section";
+    removeBtn.addEventListener("click", function() { removeFuzzySection(sectionIndex); });
+    header.appendChild(removeBtn);
   }
-  document.getElementById('fuzzy-affix-area').style.display = 'block';
+  div.appendChild(header);
+  var minRow = document.createElement("div");
+  minRow.className = "section-min";
+  var minLabel = document.createElement("span");
+  minLabel.textContent = "Minimum # to match:";
+  minRow.appendChild(minLabel);
+  var minSel = document.createElement("select");
+  minSel.id = "fuzzy-section-min-" + sectionIndex;
+  for (var m = 1; m <= 6; m++) {
+    var opt = document.createElement("option");
+    opt.value = m; opt.textContent = m;
+    if (m === section.min) opt.selected = true;
+    minSel.appendChild(opt);
+  }
+  minSel.addEventListener("change", (function(si) { return function() { onFuzzySectionMinChange(si); }; })(sectionIndex));
+  minRow.appendChild(minSel);
+  div.appendChild(minRow);
+  var slotsContainer = document.createElement("div");
+  slotsContainer.id = "fuzzy-section-slots-" + sectionIndex;
+  if (section.affixes.length === 0) section.affixes.push(-1);
+  for (var i = 0; i < section.affixes.length; i++) slotsContainer.appendChild(createFuzzyAffixSelect(sectionIndex, i));
+  div.appendChild(slotsContainer);
+  var addBtn = document.createElement("button");
+  addBtn.className = "add-affix-btn";
+  addBtn.textContent = "+ Add Another Affix";
+  addBtn.addEventListener("click", (function(si) { return function() { addFuzzyAffixSlot(si); }; })(sectionIndex));
+  div.appendChild(addBtn);
+  return div;
 }
 
-function addFuzzyAffixSlot() {
-  state.fuzzyAffixes.push(-1);
-  var container = document.getElementById('fuzzy-affix-slots');
-  container.appendChild(createFuzzyAffixSelect(state.fuzzyAffixes.length - 1));
-}
+function addFuzzySection() { state.fuzzySections.push({ affixes: [-1], min: 1 }); buildFuzzySections(); renderPreview(); }
+function removeFuzzySection(si) { if (state.fuzzySections.length <= 1) return; state.fuzzySections.splice(si, 1); buildFuzzySections(); renderPreview(); }
+function addFuzzyAffixSlot(si) { state.fuzzySections[si].affixes.push(-1); var container = document.getElementById("fuzzy-section-slots-" + si); container.appendChild(createFuzzyAffixSelect(si, state.fuzzySections[si].affixes.length - 1)); }
+function removeFuzzyAffixSlot(si, ai) { state.fuzzySections[si].affixes.splice(ai, 1); buildFuzzySections(); renderPreview(); }
 
-function removeFuzzyAffixSlot(index) {
-  state.fuzzyAffixes.splice(index, 1);
-  buildFuzzyAffixSlots();
-  renderPreview();
-}
-
-function createFuzzyAffixSelect(slotIndex) {
+function createFuzzyAffixSelect(sectionIndex, slotIndex) {
   var pool = state._fuzzyPool || [];
-  var div = document.createElement('div');
-  div.className = 'affix-slot';
-  div.style.position = 'relative';
-
-  var filter = document.createElement('input');
-  filter.type = 'text';
-  filter.className = 'affix-list-filter';
-  filter.placeholder = 'Filter affixes...';
-
-  var sel = document.createElement('select');
-  sel.id = 'fuzzy-' + slotIndex;
-
+  var section = state.fuzzySections[sectionIndex];
+  var div = document.createElement("div");
+  div.className = "affix-slot"; div.style.position = "relative";
+  var filter = document.createElement("input");
+  filter.type = "text"; filter.className = "affix-list-filter"; filter.placeholder = "Filter affixes...";
+  var sel = document.createElement("select");
+  sel.id = "fuzzy-" + sectionIndex + "-" + slotIndex;
   function populateOptions() {
     var currentVal = sel.value;
     sel.innerHTML = '<option value="-1">-- None --</option>';
-    var ft = (filter.value || '').toLowerCase();
+    var ft = (filter.value || "").toLowerCase();
     pool.forEach(function(a, idx) {
       var desc = affixDescription(a);
       var lvlReq = parseInt(a.levelreq) || 0;
-      var typeTag = a._poolType === 'prefix' ? '[P]' : '[S]';
-      var label = typeTag + ' ' + a.Name + (desc ? ' \u2014 ' + desc : '') + ' (lvl ' + a.level + (lvlReq > 0 ? ', req ' + lvlReq : '') + ')';
+      var typeTag = a._poolType === "prefix" ? "[P]" : "[S]";
+      var label = typeTag + " " + a.Name + (desc ? " \u2014 " + desc : "") + " (lvl " + a.level + (lvlReq > 0 ? ", req " + lvlReq : "") + ")";
       if (ft && !label.toLowerCase().includes(ft)) return;
-      var opt = document.createElement('option');
-      opt.value = idx;
-      opt.textContent = label;
-      sel.appendChild(opt);
+      var opt = document.createElement("option");
+      opt.value = idx; opt.textContent = label; sel.appendChild(opt);
     });
-    if (sel.querySelector('option[value="' + currentVal + '"]')) {
-      sel.value = currentVal;
-    }
+    if (sel.querySelector('option[value="' + currentVal + '"]')) sel.value = currentVal;
   }
-
   populateOptions();
-  filter.addEventListener('input', populateOptions);
+  filter.addEventListener("input", populateOptions);
+  sel.addEventListener("change", (function(si, ai) {
+    return function() { state.fuzzySections[si].affixes[ai] = parseInt(this.value); syncLegacyFuzzyState(); renderPreview(); };
+  })(sectionIndex, slotIndex));
+  if (section.affixes[slotIndex] >= 0) sel.value = section.affixes[slotIndex];
+  var removeBtn = document.createElement("button");
+  removeBtn.className = "remove-affix-btn"; removeBtn.innerHTML = "&times;"; removeBtn.title = "Remove this affix slot";
+  removeBtn.addEventListener("click", (function(si, ai) { return function() { removeFuzzyAffixSlot(si, ai); }; })(sectionIndex, slotIndex));
+  div.appendChild(filter); div.appendChild(sel); div.appendChild(removeBtn);
+  return div;
+}
 
-  sel.addEventListener('change', function() {
-    state.fuzzyAffixes[slotIndex] = parseInt(this.value);
-    renderPreview();
-  });
-
-  if (state.fuzzyAffixes[slotIndex] >= 0) {
-    sel.value = state.fuzzyAffixes[slotIndex];
+// Legacy compatibility wrapper
+function buildFuzzyAffixSlots() {
+  if (state.fuzzyAffixes.length > 0 && state.fuzzySections.length <= 1) {
+    state.fuzzySections = [{ affixes: state.fuzzyAffixes.slice(), min: state.fuzzyMin || 1 }];
   }
-
-  var removeBtn = document.createElement('button');
-  removeBtn.className = 'remove-affix-btn';
-  removeBtn.innerHTML = '&times;';
-  removeBtn.title = 'Remove this affix slot';
-  removeBtn.addEventListener('click', function() { removeFuzzyAffixSlot(slotIndex); });
-
-  div.appendChild(filter);
-  div.appendChild(sel);
-  div.appendChild(removeBtn);
+  buildFuzzySections();
+}
   return div;
 }
 
 // --- Fuzzy combinatorial odds calculation ---
 function computeFuzzyOdds() {
   if (state.baseIndex < 0 || !state.quality) return null;
-  var items = getCategoryItems();
-  var item = items[state.baseIndex];
-  var pool = state._fuzzyPool || [];
-
-  var selectedIndices = state.fuzzyAffixes.filter(function(i) { return i >= 0; });
-  if (selectedIndices.length === 0) return null;
-
-  var selectedAffixes = selectedIndices.map(function(i) { return pool[i]; }).filter(Boolean);
-  if (selectedAffixes.length === 0) return null;
-
-  var minMatch = Math.min(state.fuzzyMin, selectedAffixes.length);
+  var items = getCategoryItems(); var item = items[state.baseIndex]; var pool = state._fuzzyPool || [];
+  var allSelectedAffixes = []; var sectionInfos = [];
+  for (var si = 0; si < state.fuzzySections.length; si++) {
+    var sec = state.fuzzySections[si];
+    var secIndices = sec.affixes.filter(function(i) { return i >= 0; });
+    var secAffixes = secIndices.map(function(i) { return pool[i]; }).filter(Boolean);
+    if (secAffixes.length === 0) continue;
+    sectionInfos.push({ affixes: secAffixes, min: Math.min(sec.min, secAffixes.length) });
+    allSelectedAffixes = allSelectedAffixes.concat(secAffixes);
+  }
+  if (sectionInfos.length === 0) return null;
   var alvl = calcAlvl(state.ilvl, item);
-
-  var validPrefixes = state._validPrefixes || [];
-  var validSuffixes = state._validSuffixes || [];
-  var eligPre = filterByAlvl(validPrefixes, alvl);
-  var eligSuf = filterByAlvl(validSuffixes, alvl);
-
+  var validPrefixes = state._validPrefixes || []; var validSuffixes = state._validSuffixes || [];
+  var eligPre = filterByAlvl(validPrefixes, alvl); var eligSuf = filterByAlvl(validSuffixes, alvl);
   var slotDist = getSlotDistribution(state.quality, state.category, state.ilvl);
+  if (sectionInfos.length === 1) {
+    var selPreSet = new Set(); var selSufSet = new Set();
+    var selectedAffixes = sectionInfos[0].affixes; var minMatch = sectionInfos[0].min;
+    for (var si2 = 0; si2 < selectedAffixes.length; si2++) {
+      var a = selectedAffixes[si2];
+      if (a._poolType === "prefix") { for (var pi = 0; pi < eligPre.length; pi++) { if (eligPre[pi].Name === a.Name && eligPre[pi].group === a.group && eligPre[pi].level === a.level) { selPreSet.add(pi); break; } } }
+      else { for (var xi = 0; xi < eligSuf.length; xi++) { if (eligSuf[xi].Name === a.Name && eligSuf[xi].group === a.group && eligSuf[xi].level === a.level) { selSufSet.add(xi); break; } } }
+    }
+    var allEligible = selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); });
+    var baseLevelReq = parseInt(item.levelreq) || 0; var baseLLD = baseLevelReq <= 30;
+    var result = computeFuzzyOddsWeighted(slotDist, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, baseLLD, selectedAffixes);
+    result.sectionCount = 1; result.sectionInfos = sectionInfos; result.selectedCount = selectedAffixes.length;
+    return result;
+  }
+  var sectionSets = [];
+  for (var ms = 0; ms < sectionInfos.length; ms++) {
+    var msPre = new Set(); var msSuf = new Set();
+    for (var msa = 0; msa < sectionInfos[ms].affixes.length; msa++) {
+      var msAffix = sectionInfos[ms].affixes[msa];
+      if (msAffix._poolType === "prefix") { for (var mpi = 0; mpi < eligPre.length; mpi++) { if (eligPre[mpi].Name === msAffix.Name && eligPre[mpi].group === msAffix.group && eligPre[mpi].level === msAffix.level) { msPre.add(mpi); break; } } }
+      else { for (var mxi = 0; mxi < eligSuf.length; mxi++) { if (eligSuf[mxi].Name === msAffix.Name && eligSuf[mxi].group === msAffix.group && eligSuf[mxi].level === msAffix.level) { msSuf.add(mxi); break; } } }
+    }
+    sectionSets.push({ preSet: msPre, sufSet: msSuf, min: sectionInfos[ms].min });
+  }
+  var baseLevelReq2 = parseInt(item.levelreq) || 0; var baseLLD2 = baseLevelReq2 <= 30;
+  var allEligible2 = allSelectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); });
+  var result2 = computeMultiSectionFuzzyOdds(slotDist, eligPre, eligSuf, sectionSets, alvl, baseLLD2, allSelectedAffixes);
+  result2.sectionCount = sectionInfos.length; result2.sectionInfos = sectionInfos;
+  result2.allEligible = allEligible2; result2.selectedCount = allSelectedAffixes.length;
+  result2.minMatch = sectionInfos.map(function(s) { return s.min; }).join("+");
+  return result2;
+}
 
-  // Map selected affixes to indices in the eligible pools
-  var selPreSet = new Set();
-  var selSufSet = new Set();
-  for (var si2 = 0; si2 < selectedAffixes.length; si2++) {
-    var a = selectedAffixes[si2];
-    if (a._poolType === 'prefix') {
-      for (var pi = 0; pi < eligPre.length; pi++) {
-        if (eligPre[pi].Name === a.Name && eligPre[pi].group === a.group && eligPre[pi].level === a.level) {
-          selPreSet.add(pi);
-          break;
-        }
-      }
-    } else {
-      for (var xi = 0; xi < eligSuf.length; xi++) {
-        if (eligSuf[xi].Name === a.Name && eligSuf[xi].group === a.group && eligSuf[xi].level === a.level) {
-          selSufSet.add(xi);
-          break;
-        }
+function computeMultiSectionFuzzyOdds(slotDist, eligPre, eligSuf, sectionSets, alvl, baseLLD, allSelectedAffixes) {
+  var CAP = 500000;
+  function getGroupUniqueSubsets(pool, size) {
+    if (size <= 0) return [[]]; var results = [];
+    function recurse(start, current, usedGroups) {
+      if (current.length === size) { results.push(current.slice()); return; }
+      if (start >= pool.length || results.length > CAP) return;
+      if (pool.length - start < size - current.length) return;
+      for (var i = start; i < pool.length; i++) {
+        var grp = pool[i].group; if (grp && usedGroups.has(grp)) continue;
+        current.push(i); if (grp) usedGroups.add(grp);
+        recurse(i + 1, current, usedGroups);
+        current.pop(); if (grp) usedGroups.delete(grp);
+        if (results.length > CAP) return;
       }
     }
+    recurse(0, [], new Set()); return results;
   }
-
-  var allEligible = selectedAffixes.every(function(a) { return affixEligibleAtAlvl(a, alvl); });
-
-  var baseLevelReq = parseInt(item.levelreq) || 0;
-  var baseLLD = baseLevelReq <= 30;
-
-  return computeFuzzyOddsWeighted(slotDist, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, baseLLD, selectedAffixes);
+  function comboMultiInfo(combo, pool, sectionSelSets) {
+    var sectionHits = new Array(sectionSelSets.length);
+    for (var s = 0; s < sectionSelSets.length; s++) sectionHits[s] = 0;
+    var lld = true;
+    for (var i = 0; i < combo.length; i++) {
+      for (var s2 = 0; s2 < sectionSelSets.length; s2++) { if (sectionSelSets[s2].has(combo[i])) sectionHits[s2]++; }
+      if (lld && (parseInt(pool[combo[i]].levelreq) || 0) > 30) lld = false;
+    }
+    return { sectionHits: sectionHits, lld: lld };
+  }
+  var preSizes = new Set(), sufSizes = new Set();
+  for (var di = 0; di < slotDist.length; di++) { preSizes.add(slotDist[di].pre); sufSizes.add(slotDist[di].suf); }
+  var capped = false;
+  var preSectionSets = sectionSets.map(function(s) { return s.preSet; });
+  var sufSectionSets = sectionSets.map(function(s) { return s.sufSet; });
+  var preDists = {};
+  preSizes.forEach(function(size) {
+    var combos = getGroupUniqueSubsets(eligPre, size); if (combos.length > CAP) capped = true;
+    var dist = {};
+    for (var i = 0; i < combos.length; i++) {
+      var info = comboMultiInfo(combos[i], eligPre, preSectionSets);
+      var key = info.sectionHits.join(",") + ":" + (info.lld && baseLLD ? "1" : "0");
+      dist[key] = (dist[key] || 0) + 1;
+    }
+    preDists[size] = { dist: dist, count: combos.length };
+  });
+  var sufDists = {};
+  sufSizes.forEach(function(size) {
+    var combos = getGroupUniqueSubsets(eligSuf, size); if (combos.length > CAP) capped = true;
+    var dist = {};
+    for (var i = 0; i < combos.length; i++) {
+      var info = comboMultiInfo(combos[i], eligSuf, sufSectionSets);
+      var key = info.sectionHits.join(",") + ":" + (info.lld ? "1" : "0");
+      dist[key] = (dist[key] || 0) + 1;
+    }
+    sufDists[size] = { dist: dist, count: combos.length };
+  });
+  var totalPossible = 0, totalValid = 0, totalValidLLD = 0, totalLLD = 0;
+  var numSections = sectionSets.length;
+  for (var ci = 0; ci < slotDist.length; ci++) {
+    var config = slotDist[ci]; var pd = preDists[config.pre]; var sd = sufDists[config.suf];
+    var configTotal = pd.count * sd.count; var configValid = 0, configValidLLD = 0, configLLD = 0;
+    for (var pk in pd.dist) {
+      var pp = pk.split(":"); var preHitsArr = pp[0].split(",").map(Number); var preLLD = pp[1] === "1";
+      for (var sk in sd.dist) {
+        var sp = sk.split(":"); var sufHitsArr = sp[0].split(",").map(Number); var sufLLD = sp[1] === "1";
+        var product = pd.dist[pk] * sd.dist[sk];
+        if (preLLD && sufLLD) configLLD += product;
+        var allMet = true;
+        for (var sec = 0; sec < numSections; sec++) { if (preHitsArr[sec] + sufHitsArr[sec] < sectionSets[sec].min) { allMet = false; break; } }
+        if (allMet) { configValid += product; if (preLLD && sufLLD) configValidLLD += product; }
+      }
+    }
+    totalPossible += config.prob * configTotal; totalValid += config.prob * configValid;
+    totalValidLLD += config.prob * configValidLLD; totalLLD += config.prob * configLLD;
+  }
+  return { validCombinations: totalValid, totalCombinations: totalPossible,
+    percentage: totalPossible > 0 ? (totalValid / totalPossible * 100) : 0,
+    lldValidCombinations: totalValidLLD, lldTotalCombinations: totalLLD,
+    lldPercentage: totalValid > 0 ? (totalValidLLD / totalValid * 100) : 0,
+    baseLLD: baseLLD, capped: capped };
 }
 
 function computeFuzzyOddsWeighted(slotDist, eligPre, eligSuf, selPreSet, selSufSet, minMatch, alvl, baseLLD, selectedAffixes) {
@@ -1450,8 +1566,12 @@ function renderPreview() {
     if (allLLD) {
       if (state.affixMode === 'fuzzy') {
         const pool = state._fuzzyPool || [];
-        const sel = state.fuzzyAffixes.filter(i => i >= 0).map(i => pool[i]).filter(Boolean);
-        allLLD = sel.length > 0 && sel.every(a => (parseInt(a.levelreq) || 0) <= LLD_CHECK);
+        let allFuzzyAffixes = [];
+        for (let fsi = 0; fsi < state.fuzzySections.length; fsi++) {
+          const secAff = state.fuzzySections[fsi].affixes.filter(i => i >= 0).map(i => pool[i]).filter(Boolean);
+          allFuzzyAffixes = allFuzzyAffixes.concat(secAff);
+        }
+        allLLD = allFuzzyAffixes.length > 0 && allFuzzyAffixes.every(a => (parseInt(a.levelreq) || 0) <= LLD_CHECK);
       } else {
         const vp = state._validPrefixes || [];
         const vs = state._validSuffixes || [];
@@ -1490,7 +1610,15 @@ function renderPreview() {
       html += '<div class="fuzzy-results">';
       html += '<div class="fuzzy-header">Fuzzy Affix Combinations</div>';
       html += '<div class="fuzzy-stat">Selected affixes: <span class="val">' + fuzzyResult.selectedCount + '</span></div>';
-      html += '<div class="fuzzy-stat">Minimum to match: <span class="val">' + fuzzyResult.minMatch + '</span></div>';
+      if (fuzzyResult.sectionCount > 1) {
+        html += '<div class="fuzzy-stat">Sections: <span class="val">' + fuzzyResult.sectionCount + '</span></div>';
+        for (var rsi = 0; rsi < fuzzyResult.sectionInfos.length; rsi++) {
+          var rSec = fuzzyResult.sectionInfos[rsi];
+          html += '<div class="fuzzy-stat" style="font-size:0.8rem;">&nbsp;&nbsp;Section ' + (rsi + 1) + ': ' + rSec.affixes.length + ' affixes, min <span class="val">' + rSec.min + '</span></div>';
+        }
+      } else {
+        html += '<div class="fuzzy-stat">Minimum to match: <span class="val">' + fuzzyResult.minMatch + '</span></div>';
+      }
       if (!fuzzyResult.allEligible) {
         html += '<div class="fuzzy-stat" style="color:#cc4444;">Warning: some selected affixes are not eligible at current alvl</div>';
       }
@@ -2285,7 +2413,11 @@ function computeIlvlBreakdown(el, mode) {
     html += buildIlvlBreakdownFuzzy(state.ilvl, false);
     // Check if LLD applies
     var pool = state._fuzzyPool || [];
-    var sel = state.fuzzyAffixes.filter(function(i) { return i >= 0; }).map(function(i) { return pool[i]; }).filter(Boolean);
+    var sel = [];
+        for (var fsi2 = 0; fsi2 < state.fuzzySections.length; fsi2++) {
+          var secAff2 = state.fuzzySections[fsi2].affixes.filter(function(i) { return i >= 0; }).map(function(i) { return pool[i]; }).filter(Boolean);
+          sel = sel.concat(secAff2);
+        }
     var baseLLD = (parseInt(item.levelreq) || 0) <= 30;
     if (baseLLD && sel.length > 0 && sel.every(function(a) { return (parseInt(a.levelreq) || 0) <= 30; })) {
       // Check if there are actually LLD combinations
@@ -2356,23 +2488,29 @@ function stateToHash() {
 
   // Fuzzy mode
   if (state.affixMode === 'fuzzy') parts.push('m=f');
-  if (state.affixMode === 'fuzzy' && state.fuzzyMin > 1) parts.push('fm=' + state.fuzzyMin);
-  if (state.affixMode === 'fuzzy' && state.fuzzyAffixes.length > 0) {
+  if (state.affixMode === 'fuzzy' && state.fuzzySections.length > 0) {
     const pool = state._fuzzyPool || [];
-    const faIds = state.fuzzyAffixes
-      .filter(i => i >= 0 && pool[i])
-      .map(i => {
+    const sectionParts = [];
+    for (let fsi = 0; fsi < state.fuzzySections.length; fsi++) {
+      const sec = state.fuzzySections[fsi];
+      const faIds = sec.affixes.filter(i => i >= 0 && pool[i]).map(i => {
         const a = pool[i];
-        if (a._poolType === 'prefix') {
-          const gi = prefixes.findIndex(p => p.Name === a.Name && p.group === a.group);
-          return gi >= 0 ? 'p' + gi : null;
-        } else {
-          const gi = suffixes.findIndex(s => s.Name === a.Name && s.group === a.group);
-          return gi >= 0 ? 's' + gi : null;
-        }
-      })
-      .filter(Boolean);
-    if (faIds.length) parts.push('fa=' + faIds.join('.'));
+        if (a._poolType === 'prefix') { const gi = prefixes.findIndex(p => p.Name === a.Name && p.group === a.group); return gi >= 0 ? 'p' + gi : null; }
+        else { const gi = suffixes.findIndex(s => s.Name === a.Name && s.group === a.group); return gi >= 0 ? 's' + gi : null; }
+      }).filter(Boolean);
+      if (faIds.length > 0) sectionParts.push(sec.min + ':' + faIds.join('.'));
+    }
+    if (sectionParts.length) parts.push('fs=' + sectionParts.join('|'));
+    if (state.fuzzySections.length === 1 && state.fuzzySections[0].min > 1) parts.push('fm=' + state.fuzzySections[0].min);
+    if (state.fuzzySections.length === 1) {
+      const sec0 = state.fuzzySections[0];
+      const fa0Ids = sec0.affixes.filter(i => i >= 0 && pool[i]).map(i => {
+        const a = pool[i];
+        if (a._poolType === 'prefix') { const gi = prefixes.findIndex(p => p.Name === a.Name && p.group === a.group); return gi >= 0 ? 'p' + gi : null; }
+        else { const gi = suffixes.findIndex(s => s.Name === a.Name && s.group === a.group); return gi >= 0 ? 's' + gi : null; }
+      }).filter(Boolean);
+      if (fa0Ids.length) parts.push('fa=' + fa0Ids.join('.'));
+    }
   }
 
   // Rare name
@@ -2481,23 +2619,46 @@ function loadFromHash() {
   // Restore fuzzy mode if present
   if (params.m === 'f') {
     state.affixMode = 'fuzzy';
-    state.fuzzyMin = params.fm ? Math.max(1, parseInt(params.fm) || 1) : 1;
-    document.getElementById('fuzzy-min').value = state.fuzzyMin;
-    setAffixMode('fuzzy');
-
-    if (params.fa) {
+    if (params.fs) {
+      const pool = state._fuzzyPool || [];
+      const sectionTokens = params.fs.split('|');
+      state.fuzzySections = [];
+      for (const secTok of sectionTokens) {
+        const colonIdx = secTok.indexOf(':');
+        const secMin = colonIdx >= 0 ? Math.max(1, parseInt(secTok.substring(0, colonIdx)) || 1) : 1;
+        const affixStr = colonIdx >= 0 ? secTok.substring(colonIdx + 1) : secTok;
+        const faTokens = affixStr.split('.');
+        const secAffixes = [];
+        for (const tok of faTokens) {
+          const type = tok[0]; const gi = parseInt(tok.slice(1));
+          const affix = type === 'p' ? prefixes[gi] : suffixes[gi];
+          if (!affix) { secAffixes.push(-1); continue; }
+          const poolIdx = pool.findIndex(a => a.Name === affix.Name && a.group === affix.group && a._poolType === (type === 'p' ? 'prefix' : 'suffix'));
+          secAffixes.push(poolIdx >= 0 ? poolIdx : -1);
+        }
+        state.fuzzySections.push({ affixes: secAffixes, min: secMin });
+      }
+      syncLegacyFuzzyState();
+      setAffixMode('fuzzy');
+      buildFuzzySections();
+    } else if (params.fa) {
       const pool = state._fuzzyPool || [];
       const faTokens = params.fa.split('.');
-      state.fuzzyAffixes = [];
+      const secAffixes = [];
       for (const tok of faTokens) {
-        const type = tok[0]; // 'p' or 's'
-        const gi = parseInt(tok.slice(1));
+        const type = tok[0]; const gi = parseInt(tok.slice(1));
         const affix = type === 'p' ? prefixes[gi] : suffixes[gi];
-        if (!affix) { state.fuzzyAffixes.push(-1); continue; }
+        if (!affix) { secAffixes.push(-1); continue; }
         const poolIdx = pool.findIndex(a => a.Name === affix.Name && a.group === affix.group && a._poolType === (type === 'p' ? 'prefix' : 'suffix'));
-        state.fuzzyAffixes.push(poolIdx >= 0 ? poolIdx : -1);
+        secAffixes.push(poolIdx >= 0 ? poolIdx : -1);
       }
-      buildFuzzyAffixSlots();
+      state.fuzzyMin = params.fm ? Math.max(1, parseInt(params.fm) || 1) : 1;
+      state.fuzzySections = [{ affixes: secAffixes, min: state.fuzzyMin }];
+      state.fuzzyAffixes = secAffixes.slice();
+      setAffixMode('fuzzy');
+      buildFuzzySections();
+    } else {
+      setAffixMode('fuzzy');
     }
   } else {
     buildAffixSlots();
