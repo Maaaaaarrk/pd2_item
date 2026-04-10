@@ -2249,9 +2249,20 @@ function toggleIlvlBreakdown(id, mode) {
   if (el.style.display === 'none') {
     // Compute on first show or if empty (state changed since last render)
     if (!el.innerHTML) {
-      computeIlvlBreakdown(el, mode);
+      // Show spinner while computing breakdown
+      el.style.display = '';
+      el.innerHTML = '<div style="text-align:center; padding:12px;"><span class="btn-spinner" style="width:18px; height:18px;"></span></div>';
+      // Find and update the button text
+      var btn = el.previousElementSibling ? el.previousElementSibling.querySelector('.ilvl-breakdown-btn') : null;
+      if (btn) { btn.disabled = true; }
+      // Defer computation so spinner renders first
+      setTimeout(function() {
+        computeIlvlBreakdown(el, mode);
+        if (btn) { btn.disabled = false; }
+      }, 0);
+    } else {
+      el.style.display = '';
     }
-    el.style.display = '';
   } else {
     el.style.display = 'none';
   }
