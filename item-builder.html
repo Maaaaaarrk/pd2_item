@@ -111,6 +111,15 @@
   .fuzzy-results .fuzzy-stat { color: #8a7e5a; font-size: 0.85rem; margin: 4px 0; }
   .fuzzy-results .fuzzy-stat .val { color: #c0b377; }
   .fuzzy-results .fuzzy-pct { color: #d4b44a; font-size: 1.2rem; font-family: 'Exocet', serif; margin-top: 8px; }
+
+  .ilvl-breakdown-btn { margin-top: 8px; padding: 4px 10px; background: #1a1610; border: 1px solid #3a3228; color: #8a7e5a; border-radius: 2px; cursor: pointer; font-size: 0.75rem; }
+  .ilvl-breakdown-btn:hover { border-color: #6b5c3e; color: #c0b377; }
+  .ilvl-breakdown { margin-top: 8px; }
+  .ilvl-breakdown table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  .ilvl-breakdown th { color: #d4b44a; text-align: left; padding: 3px 6px; border-bottom: 1px solid #2a2418; font-family: 'Exocet', serif; font-weight: normal; }
+  .ilvl-breakdown td { color: #8a7e5a; padding: 2px 6px; border-bottom: 1px solid #1a1610; }
+  .ilvl-breakdown tr.current td { color: #c0b377; background: #1a1610; }
+  .ilvl-breakdown td:last-child { text-align: right; color: #c0b377; }
 </style>
 <script src="data/js/Armor.js"></script>
 <script src="data/js/Weapons.js"></script>
@@ -195,6 +204,7 @@
       <div style="display:flex; gap:6px; align-items:center;">
         <input type="number" id="ilvl-input" min="1" max="99" value="99" style="flex:1;" onchange="onIlvlChange()" oninput="onIlvlChange()">
         <button id="btn-optimal" onclick="findOptimalIlvl()" style="padding:6px 10px; background:#0f3460; border:1px solid #1a4080; color:#c4a84f; border-radius:4px; cursor:pointer; font-size:0.8rem; white-space:nowrap;">Best ilvl</button>
+        <button id="btn-optimal-lld" onclick="findOptimalIlvl(true)" style="padding:6px 10px; background:#0f3460; border:1px solid #1a4080; color:#c4a84f; border-radius:4px; cursor:pointer; font-size:0.8rem; white-space:nowrap; display:none;">Best ilvl LLD</button>
       </div>
       <div id="ilvl-range-display"></div>
     </div>
@@ -764,8 +774,9 @@ function updateAlvlDisplay() {
   document.getElementById('alvl-display').textContent = '(alvl: ' + alvl + ')';
 }
 
-function findOptimalIlvl() {
-  const btn = document.getElementById('btn-optimal');
+function findOptimalIlvl(lld) {
+  const btnId = lld ? 'btn-optimal-lld' : 'btn-optimal';
+  const btn = document.getElementById(btnId);
   if (btn.disabled) return;
   if (state.baseIndex < 0 || !state.quality) return;
 
@@ -775,19 +786,17 @@ function findOptimalIlvl() {
   btn.innerHTML = '<span class="btn-spinner"></span>';
 
   // Defer computation to let the UI update
-  setTimeout(function() { _findOptimalIlvlWork(); btn.disabled = false; btn.textContent = savedText; }, 0);
+  setTimeout(function() { _findOptimalIlvlWork(!!lld); btn.disabled = false; btn.textContent = savedText; }, 0);
 }
 
-function _findOptimalIlvlWork() {
+function _findOptimalIlvlWork(lld) {
   const items = getCategoryItems();
   const item = items[state.baseIndex];
 
   const validPre = state._validPrefixes || [];
   const validSuf = state._validSuffixes || [];
 
-  // Check if this is an LLD-eligible build
   const LLD_MAX = 30;
-  const baseLevelReq = parseInt(item.levelreq) || 0;
 
   if (state.affixMode === 'fuzzy') {
     // Fuzzy mode: use computeFuzzyOdds at each ilvl to find the best
@@ -795,7 +804,6 @@ function _findOptimalIlvlWork() {
     const selected = state.fuzzyAffixes.filter(i => i >= 0).map(i => pool[i]).filter(Boolean);
     if (selected.length === 0) return;
 
-    const isLLD = baseLevelReq <= LLD_MAX && selected.every(a => (parseInt(a.levelreq) || 0) <= LLD_MAX);
     let bestIlvl = state.ilvl;
     let bestScore = -1;
     const scores = {};
@@ -807,9 +815,9 @@ function _findOptimalIlvlWork() {
       if (!result) continue;
 
       let score;
-      if (isLLD && result.lldValidCombinations > 0) {
+      if (lld && result.lldValidCombinations > 0) {
         score = result.totalCombinations > 0 ? result.lldValidCombinations / result.totalCombinations : 0;
-      } else if (!isLLD && result.percentage > 0) {
+      } else if (!lld && result.percentage > 0) {
         score = result.percentage;
       } else {
         continue;
@@ -846,9 +854,6 @@ function _findOptimalIlvlWork() {
   const selSuf = state.selectedSuffixes.filter(i => i >= 0).map(i => validSuf[i]).filter(Boolean);
   if (selPre.length === 0 && selSuf.length === 0) return;
 
-  const allSelected = [...selPre, ...selSuf];
-  const isLLD = baseLevelReq <= LLD_MAX && allSelected.every(a => (parseInt(a.levelreq) || 0) <= LLD_MAX);
-
   let bestIlvl = state.ilvl;
   let bestScore = -1;
   const scores = {};
@@ -856,6 +861,7 @@ function _findOptimalIlvlWork() {
   for (let testIlvl = 1; testIlvl <= 99; testIlvl++) {
     const alvl = calcAlvl(testIlvl, item);
 
+    const allSelected = [...selPre, ...selSuf];
     const allEligible = allSelected.every(a => affixEligibleAtAlvl(a, alvl));
     if (!allEligible) continue;
 
@@ -878,7 +884,7 @@ function _findOptimalIlvlWork() {
     let prob = computeCombinedProb(slotDist, preProbs, sufProbs);
     if (prob <= 0) continue;
 
-    if (isLLD) {
+    if (lld) {
       const lldPreFreq = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
       const lldSufFreq = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
       const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
@@ -1415,6 +1421,7 @@ function renderPreview() {
 
   if (state.baseIndex < 0 || !state.category) {
     preview.innerHTML = '<div class="no-item">Select an item base and quality to begin</div>';
+    const lb1 = document.getElementById('btn-optimal-lld'); if (lb1) lb1.style.display = 'none';
     stateToHash();
     return;
   }
@@ -1422,10 +1429,33 @@ function renderPreview() {
   const item = items[state.baseIndex];
   if (!state.quality) {
     preview.innerHTML = '<div class="no-item">Select Magic or Rare quality</div>';
+    const lb2 = document.getElementById('btn-optimal-lld'); if (lb2) lb2.style.display = 'none';
     stateToHash();
     return;
   }
 
+  // Show/hide Best ilvl LLD button based on whether all selected affixes + base are LLD-eligible
+  const lldBtn = document.getElementById('btn-optimal-lld');
+  if (lldBtn) {
+    const LLD_CHECK = 30;
+    const baseReq = parseInt(item.levelreq) || 0;
+    let allLLD = baseReq <= LLD_CHECK;
+    if (allLLD) {
+      if (state.affixMode === 'fuzzy') {
+        const pool = state._fuzzyPool || [];
+        const sel = state.fuzzyAffixes.filter(i => i >= 0).map(i => pool[i]).filter(Boolean);
+        allLLD = sel.length > 0 && sel.every(a => (parseInt(a.levelreq) || 0) <= LLD_CHECK);
+      } else {
+        const vp = state._validPrefixes || [];
+        const vs = state._validSuffixes || [];
+        const sp = state.selectedPrefixes.filter(i => i >= 0).map(i => vp[i]).filter(Boolean);
+        const ss = state.selectedSuffixes.filter(i => i >= 0).map(i => vs[i]).filter(Boolean);
+        const all = [...sp, ...ss];
+        allLLD = all.length > 0 && all.every(a => (parseInt(a.levelreq) || 0) <= LLD_CHECK);
+      }
+    }
+    lldBtn.style.display = allLLD ? '' : 'none';
+  }
 
   // Fuzzy mode: show combinatorial odds instead of normal item preview
   if (state.affixMode === 'fuzzy') {
@@ -1468,6 +1498,27 @@ function renderPreview() {
       if (pct > 0) {
         var ratio = Math.round(100 / pct);
         html += '<div class="fuzzy-stat">Approximately <span class="val">' + oddsText(ratio) + '</span></div>';
+        var fuzzyRangeText = shortNum(ratio);
+        var fuzzyLo = state.ilvl, fuzzyHi = state.ilvl;
+        var savedFuzzyIlvl = state.ilvl;
+        for (var fi = state.ilvl - 1; fi >= 1; fi--) {
+          state.ilvl = fi;
+          var fr = computeFuzzyOdds();
+          if (!fr || fr.percentage <= 0) break;
+          if (shortNum(Math.round(100 / fr.percentage)) !== fuzzyRangeText) break;
+          fuzzyLo = fi;
+        }
+        for (var fi2 = savedFuzzyIlvl + 1; fi2 <= 99; fi2++) {
+          state.ilvl = fi2;
+          var fr2 = computeFuzzyOdds();
+          if (!fr2 || fr2.percentage <= 0) break;
+          if (shortNum(Math.round(100 / fr2.percentage)) !== fuzzyRangeText) break;
+          fuzzyHi = fi2;
+        }
+        state.ilvl = savedFuzzyIlvl;
+        if (fuzzyLo !== fuzzyHi) {
+          html += '<div class="fuzzy-stat" style="color:#a0a0b0; font-size:0.75rem;">Same odds for ilvl ' + fuzzyLo + '-' + fuzzyHi + '</div>';
+        }
       }
       html += '</div>';
 
@@ -1483,12 +1534,47 @@ function renderPreview() {
           if (overallLLD > 0) {
             var lldRatio = Math.round(100 / overallLLD);
             html += '<div class="lld-odds">Approximately <span class="lld-value">' + oddsText(lldRatio) + '</span></div>';
+            var fuzzyLldText = shortNum(lldRatio);
+            var fuzzyLldLo = state.ilvl, fuzzyLldHi = state.ilvl;
+            var savedLldIlvl = state.ilvl;
+            for (var li = state.ilvl - 1; li >= 1; li--) {
+              state.ilvl = li;
+              var lr = computeFuzzyOdds();
+              if (!lr || lr.totalCombinations <= 0 || lr.lldValidCombinations <= 0) break;
+              var lldPct = lr.lldValidCombinations / lr.totalCombinations * 100;
+              if (shortNum(Math.round(100 / lldPct)) !== fuzzyLldText) break;
+              fuzzyLldLo = li;
+            }
+            for (var li2 = savedLldIlvl + 1; li2 <= 99; li2++) {
+              state.ilvl = li2;
+              var lr2 = computeFuzzyOdds();
+              if (!lr2 || lr2.totalCombinations <= 0 || lr2.lldValidCombinations <= 0) break;
+              var lldPct2 = lr2.lldValidCombinations / lr2.totalCombinations * 100;
+              if (shortNum(Math.round(100 / lldPct2)) !== fuzzyLldText) break;
+              fuzzyLldHi = li2;
+            }
+            state.ilvl = savedLldIlvl;
+            if (fuzzyLldLo !== fuzzyLldHi) {
+              html += '<div class="lld-odds" style="color:#a0a0b0; font-size:0.75rem;">Same odds for ilvl ' + fuzzyLldLo + '-' + fuzzyLldHi + '</div>';
+            }
           }
         } else {
           html += '<div class="lld-ineligible">No matching combinations are LLD-eligible</div>';
         }
         html += '</div>';
       }
+
+      // ilvl breakdown button
+      html += '<div style="margin-top:10px; text-align:center;">';
+      html += '<button class="ilvl-breakdown-btn" onclick="toggleIlvlBreakdown(\'ilvl-bd-fuzzy\')">Show ilvl Breakdown</button>';
+      html += '</div>';
+      html += '<div id="ilvl-bd-fuzzy" class="ilvl-breakdown" style="display:none;">';
+      html += buildIlvlBreakdownFuzzy(state.ilvl, false);
+      if (fuzzyResult.baseLLD && fuzzyResult.lldValidCombinations > 0) {
+        html += '<div style="margin-top:8px; color:#d4b44a; font-size:0.8rem; font-family:\'Exocet\',serif;">LLD Breakdown</div>';
+        html += buildIlvlBreakdownFuzzy(state.ilvl, true);
+      }
+      html += '</div>';
     } else {
       html += '<div style="color:#555; margin-top: 20px;">Select at least one affix to see combination odds</div>';
     }
@@ -1694,6 +1780,10 @@ function renderPreview() {
     html += '<div class="label">Combined chance for these affixes</div>';
     const combinedRatio = combinedProb > 0 ? Math.round(1 / combinedProb) : 0;
     html += '<div class="value">' + oddsText(combinedRatio) + '</div>';
+    const ilvlRange = combinedProb > 0 ? findIlvlRange(item, validPrefixes, validSuffixes, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl) : null;
+    if (ilvlRange && (ilvlRange.lo !== ilvlRange.hi)) {
+      html += '<div style="color:#a0a0b0; font-size:0.75rem; margin-top:2px;">Same odds for ilvl ' + ilvlRange.lo + '-' + ilvlRange.hi + '</div>';
+    }
     html += '</div>';
 
     // LLD Smart Mode: check if all selected affixes + base item have levelreq <= 30
@@ -1731,9 +1821,30 @@ function renderPreview() {
         html += '<div class="lld-odds">' + lldEligPre.length + ' of ' + eligPre.length + ' eligible prefixes are LLD (' + (pPreLLD * 100).toFixed(1) + '% by weight)</div>';
         html += '<div class="lld-odds">' + lldEligSuf.length + ' of ' + eligSuf.length + ' eligible suffixes are LLD (' + (pSufLLD * 100).toFixed(1) + '% by weight)</div>';
         html += '<div class="lld-odds">Chance remaining affixes keep item LLD-eligible: <span class="lld-value">' + (pLLD * 100).toFixed(2) + '%</span></div>';
+        const lldCombinedProb = combinedProb * pLLD;
+        if (lldCombinedProb > 0) {
+          const lldCombinedRatio = Math.round(1 / lldCombinedProb);
+          html += '<div class="lld-odds">Overall LLD + match chance: <span class="lld-value">' + oddsText(lldCombinedRatio) + '</span></div>';
+          const lldRange = findIlvlRange(item, validPrefixes, validSuffixes, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl, LLD_MAX_LEVEL);
+          if (lldRange && (lldRange.lo !== lldRange.hi)) {
+            html += '<div class="lld-odds" style="color:#a0a0b0; font-size:0.75rem;">Same odds for ilvl ' + lldRange.lo + '-' + lldRange.hi + '</div>';
+          }
+        }
       }
       html += '</div>';
     }
+
+    // ilvl breakdown button
+    html += '<div style="margin-top:10px; text-align:center;">';
+    html += '<button class="ilvl-breakdown-btn" onclick="toggleIlvlBreakdown(\'ilvl-bd-exact\')">Show ilvl Breakdown</button>';
+    html += '</div>';
+    html += '<div id="ilvl-bd-exact" class="ilvl-breakdown" style="display:none;">';
+    html += buildIlvlBreakdownExact(item, validPrefixes, validSuffixes, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl);
+    if (allSelectedLLD && allSelectedAffixes.length > 0) {
+      html += '<div style="margin-top:8px; color:#d4b44a; font-size:0.8rem; font-family:\'Exocet\',serif;">LLD Breakdown</div>';
+      html += buildIlvlBreakdownExact(item, validPrefixes, validSuffixes, selPre, selSuf, state.quality, state.category, state.ethereal, state.ilvl, LLD_MAX_LEVEL);
+    }
+    html += '</div>';
 
     html += '</div>';
   }
@@ -1999,6 +2110,151 @@ function formatMod(code, param, min, max) {
 function oddsText(ratio) {
   if (ratio <= 0) return 'N/A';
   return '1 in ' + shortNum(ratio);
+}
+
+// Find the contiguous range of ilvls that produce the same rounded "1 in X" combined odds
+function findIlvlRange(item, validPre, validSuf, selPre, selSuf, quality, category, isEthereal, currentIlvl, lldMax) {
+  function oddsAtIlvl(ilvl) {
+    const alvl = calcAlvl(ilvl, item);
+    const allSelected = [...selPre, ...selSuf];
+    if (!allSelected.every(a => affixEligibleAtAlvl(a, alvl))) return 0;
+    const ePre = filterByAlvl(validPre, alvl);
+    const eSuf = filterByAlvl(validSuf, alvl);
+    const ptf = ePre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const stf = eSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const pp = selPre.map(a => { const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return ptf > 0 ? f / ptf : 0; });
+    const sp = selSuf.map(a => { const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return stf > 0 ? f / stf : 0; });
+    const sd = getSlotDistribution(quality, category, ilvl);
+    let prob = computeCombinedProb(sd, pp, sp);
+    if (isEthereal) prob *= (1 / 20);
+    if (lldMax !== undefined) {
+      const lldPreFreq = ePre.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const lldSufFreq = eSuf.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const pPreLLD = ptf > 0 ? lldPreFreq / ptf : 1;
+      const pSufLLD = stf > 0 ? lldSufFreq / stf : 1;
+      let pLLD = 0;
+      for (const config of sd) {
+        const remPre = Math.max(0, config.pre - selPre.length);
+        const remSuf = Math.max(0, config.suf - selSuf.length);
+        pLLD += config.prob * Math.pow(pPreLLD, remPre) * Math.pow(pSufLLD, remSuf);
+      }
+      prob *= pLLD;
+    }
+    return prob;
+  }
+  const currentProb = oddsAtIlvl(currentIlvl);
+  if (currentProb <= 0) return null;
+  const currentRatio = Math.round(1 / currentProb);
+  const currentText = shortNum(currentRatio);
+  let lo = currentIlvl, hi = currentIlvl;
+  for (let i = currentIlvl - 1; i >= 1; i--) {
+    const p = oddsAtIlvl(i);
+    if (p <= 0) break;
+    const r = Math.round(1 / p);
+    if (shortNum(r) !== currentText) break;
+    lo = i;
+  }
+  for (let i = currentIlvl + 1; i <= 99; i++) {
+    const p = oddsAtIlvl(i);
+    if (p <= 0) break;
+    const r = Math.round(1 / p);
+    if (shortNum(r) !== currentText) break;
+    hi = i;
+  }
+  return { lo, hi };
+}
+
+// Build ilvl breakdown table HTML — groups consecutive ilvls with the same rounded odds
+function buildIlvlBreakdownExact(item, validPre, validSuf, selPre, selSuf, quality, category, isEthereal, currentIlvl, lldMax) {
+  var rows = [];
+  for (var ilvl = 1; ilvl <= 99; ilvl++) {
+    var alvl = calcAlvl(ilvl, item);
+    var allSelected = selPre.concat(selSuf);
+    if (!allSelected.every(function(a) { return affixEligibleAtAlvl(a, alvl); })) continue;
+    var ePre = filterByAlvl(validPre, alvl);
+    var eSuf = filterByAlvl(validSuf, alvl);
+    var ptf = ePre.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+    var stf = eSuf.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+    var pp = selPre.map(function(a) { var f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return ptf > 0 ? f / ptf : 0; });
+    var sp = selSuf.map(function(a) { var f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return stf > 0 ? f / stf : 0; });
+    var sd = getSlotDistribution(quality, category, ilvl);
+    var prob = computeCombinedProb(sd, pp, sp);
+    if (prob <= 0) continue;
+    if (isEthereal) prob *= (1 / 20);
+    if (lldMax !== undefined) {
+      var lldPreFreq = ePre.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+      var lldSufFreq = eSuf.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+      var pPreLLD = ptf > 0 ? lldPreFreq / ptf : 1;
+      var pSufLLD = stf > 0 ? lldSufFreq / stf : 1;
+      var pLLD = 0;
+      for (var ci = 0; ci < sd.length; ci++) {
+        var remPre = Math.max(0, sd[ci].pre - selPre.length);
+        var remSuf = Math.max(0, sd[ci].suf - selSuf.length);
+        pLLD += sd[ci].prob * Math.pow(pPreLLD, remPre) * Math.pow(pSufLLD, remSuf);
+      }
+      prob *= pLLD;
+    }
+    var ratio = Math.round(1 / prob);
+    var text = shortNum(ratio);
+    rows.push({ ilvl: ilvl, text: text, ratio: ratio });
+  }
+  return buildBreakdownTable(rows, currentIlvl);
+}
+
+function buildIlvlBreakdownFuzzy(currentIlvl, lld) {
+  var rows = [];
+  var savedIlvl = state.ilvl;
+  for (var ilvl = 1; ilvl <= 99; ilvl++) {
+    state.ilvl = ilvl;
+    var result = computeFuzzyOdds();
+    if (!result) continue;
+    var prob;
+    if (lld) {
+      if (result.totalCombinations <= 0 || result.lldValidCombinations <= 0) continue;
+      prob = result.lldValidCombinations / result.totalCombinations * 100;
+    } else {
+      if (result.percentage <= 0) continue;
+      prob = result.percentage;
+    }
+    var ratio = Math.round(100 / prob);
+    var text = shortNum(ratio);
+    rows.push({ ilvl: ilvl, text: text, ratio: ratio });
+  }
+  state.ilvl = savedIlvl;
+  return buildBreakdownTable(rows, currentIlvl);
+}
+
+function buildBreakdownTable(rows, currentIlvl) {
+  if (rows.length === 0) return '';
+  // Group consecutive ilvls with the same shortNum text
+  var groups = [];
+  var g = { lo: rows[0].ilvl, hi: rows[0].ilvl, text: rows[0].text };
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i].text === g.text && rows[i].ilvl === g.hi + 1) {
+      g.hi = rows[i].ilvl;
+    } else {
+      groups.push(g);
+      g = { lo: rows[i].ilvl, hi: rows[i].ilvl, text: rows[i].text };
+    }
+  }
+  groups.push(g);
+  var html = '<table><tr><th>ilvl</th><th>Odds</th></tr>';
+  for (var j = 0; j < groups.length; j++) {
+    var gr = groups[j];
+    var isCurrent = currentIlvl >= gr.lo && currentIlvl <= gr.hi;
+    html += '<tr' + (isCurrent ? ' class="current"' : '') + '>';
+    html += '<td>' + (gr.lo === gr.hi ? gr.lo : gr.lo + '-' + gr.hi) + '</td>';
+    html += '<td>1 in ' + gr.text + '</td>';
+    html += '</tr>';
+  }
+  html += '</table>';
+  return html;
+}
+
+function toggleIlvlBreakdown(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? '' : 'none';
 }
 
 function shortNum(n) {
