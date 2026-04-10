@@ -91,6 +91,9 @@
   .lld-section .lld-odds { color: #8a7e5a; font-size: 0.8rem; margin-top: 4px; }
   .lld-section .lld-odds .lld-value { color: #44cc44; font-family: 'Exocet', serif; font-size: 1rem; }
 
+  #ilvl-range-display { margin-top: 6px; font-size: 0.8rem; color: #8a7e5a; }
+  #ilvl-range-display .range-value { color: #c4a84f; font-family: 'Exocet', serif; }
+
   /* Fuzzy Affixes mode styles */
   .mode-toggle { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-size: 0.85rem; color: #8a7e5a; }
   .mode-toggle label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; margin: 0; }
@@ -193,6 +196,7 @@
         <input type="number" id="ilvl-input" min="1" max="99" value="99" style="flex:1;" onchange="onIlvlChange()" oninput="onIlvlChange()">
         <button id="btn-optimal" onclick="findOptimalIlvl()" style="padding:6px 10px; background:#0f3460; border:1px solid #1a4080; color:#c4a84f; border-radius:4px; cursor:pointer; font-size:0.8rem; white-space:nowrap;">Best ilvl</button>
       </div>
+      <div id="ilvl-range-display"></div>
     </div>
 
     <div id="affix-area" style="display:none;">
@@ -689,6 +693,7 @@ document.getElementById('base').addEventListener('change', function() {
   state.baseIndex = parseInt(this.value);
   state.quality = '';
   state.ethereal = false;
+  clearIlvlRange();
   document.getElementById('eth-check').checked = false;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
@@ -716,6 +721,7 @@ function setQuality(q) {
   state.quality = q;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
+  clearIlvlRange();
   state.fuzzyAffixes = [];
   document.getElementById('btn-magic').className = q === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = q === 'rare' ? 'active-rare' : '';
@@ -745,6 +751,7 @@ function setQuality(q) {
 function onIlvlChange() {
   const val = parseInt(document.getElementById('ilvl-input').value) || 1;
   state.ilvl = Math.max(1, Math.min(99, val));
+  clearIlvlRange();
   updateAlvlDisplay();
   renderPreview();
 }
@@ -791,6 +798,7 @@ function _findOptimalIlvlWork() {
     const isLLD = baseLevelReq <= LLD_MAX && selected.every(a => (parseInt(a.levelreq) || 0) <= LLD_MAX);
     let bestIlvl = state.ilvl;
     let bestScore = -1;
+    const scores = {};
 
     const savedIlvl = state.ilvl;
     for (let testIlvl = 1; testIlvl <= 99; testIlvl++) {
@@ -800,7 +808,6 @@ function _findOptimalIlvlWork() {
 
       let score;
       if (isLLD && result.lldValidCombinations > 0) {
-        // For LLD builds, optimize overall LLD + match chance
         score = result.totalCombinations > 0 ? result.lldValidCombinations / result.totalCombinations : 0;
       } else if (!isLLD && result.percentage > 0) {
         score = result.percentage;
@@ -808,14 +815,27 @@ function _findOptimalIlvlWork() {
         continue;
       }
 
+      scores[testIlvl] = score;
       if (score > bestScore) {
         bestScore = score;
         bestIlvl = testIlvl;
       }
     }
+
+    // Find the range of ilvls with the same best score
+    const eps = 1e-12;
+    let rangeMin = bestIlvl, rangeMax = bestIlvl;
+    for (let il = 1; il <= 99; il++) {
+      if (scores[il] !== undefined && Math.abs(scores[il] - bestScore) < eps) {
+        if (il < rangeMin) rangeMin = il;
+        if (il > rangeMax) rangeMax = il;
+      }
+    }
+
     state.ilvl = bestIlvl;
     document.getElementById('ilvl-input').value = bestIlvl;
     updateAlvlDisplay();
+    displayIlvlRange(rangeMin, rangeMax);
     buildFuzzyAffixSlots();
     renderPreview();
     return;
@@ -831,6 +851,7 @@ function _findOptimalIlvlWork() {
 
   let bestIlvl = state.ilvl;
   let bestScore = -1;
+  const scores = {};
 
   for (let testIlvl = 1; testIlvl <= 99; testIlvl++) {
     const alvl = calcAlvl(testIlvl, item);
@@ -858,7 +879,6 @@ function _findOptimalIlvlWork() {
     if (prob <= 0) continue;
 
     if (isLLD) {
-      // Factor in LLD eligibility of remaining random affixes
       const lldPreFreq = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
       const lldSufFreq = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
       const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
@@ -873,16 +893,43 @@ function _findOptimalIlvlWork() {
       prob *= pLLD;
     }
 
+    scores[testIlvl] = prob;
     if (prob > bestScore) {
       bestScore = prob;
       bestIlvl = testIlvl;
     }
   }
 
+  // Find the range of ilvls with the same best score
+  const eps = 1e-12;
+  let rangeMin = bestIlvl, rangeMax = bestIlvl;
+  for (let il = 1; il <= 99; il++) {
+    if (scores[il] !== undefined && Math.abs(scores[il] - bestScore) < eps) {
+      if (il < rangeMin) rangeMin = il;
+      if (il > rangeMax) rangeMax = il;
+    }
+  }
+
   state.ilvl = bestIlvl;
   document.getElementById('ilvl-input').value = bestIlvl;
   updateAlvlDisplay();
+  displayIlvlRange(rangeMin, rangeMax);
   renderPreview();
+}
+
+function displayIlvlRange(rangeMin, rangeMax) {
+  const el = document.getElementById('ilvl-range-display');
+  if (!el) return;
+  if (rangeMin === rangeMax) {
+    el.innerHTML = 'Best ilvl: <span class="range-value">' + rangeMin + '</span> (only this ilvl has the best odds)';
+  } else {
+    el.innerHTML = 'Best odds at ilvl <span class="range-value">' + rangeMin + ' \u2013 ' + rangeMax + '</span>';
+  }
+}
+
+function clearIlvlRange() {
+  const el = document.getElementById('ilvl-range-display');
+  if (el) el.innerHTML = '';
 }
 
 function rerollRareName() {
