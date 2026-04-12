@@ -390,6 +390,43 @@ function filterByAlvl(affixList, alvl) {
   return affixList.filter(a => affixEligibleAtAlvl(a, alvl));
 }
 
+// --- Effective frequency: when item has magic lvl > 0, multiply freq by affix level ---
+function getEffectiveFreq(affix, item) {
+  const f = affix.frequency === '' ? 1 : parseInt(affix.frequency) || 0;
+  const magicLvl = parseInt(item && item['magic lvl']) || 0;
+  if (magicLvl > 0) {
+    const affixLvl = parseInt(affix.level) || 1;
+    return f * affixLvl;
+  }
+  return f;
+}
+
+// --- Sequential coin-flip distribution (matches game engine behavior) ---
+// Each slot is assigned prefix or suffix with 50/50 chance.
+// Once one side reaches its cap (k), remaining slots go to the other side.
+function coinFlipDist(n, k) {
+  if (typeof k === 'undefined') k = 3;
+  const hist = {};
+  const recur = (a, b, p) => {
+    if (a + b >= n) {
+      const key = a + ',' + b;
+      hist[key] = (hist[key] || 0) + p;
+      return;
+    }
+    if (a >= k) { recur(a, b + 1, p); return; }
+    if (b >= k) { recur(a + 1, b, p); return; }
+    recur(a + 1, b, p * 0.5);
+    recur(a, b + 1, p * 0.5);
+  };
+  recur(0, 0, 1);
+  const res = [];
+  for (const [key, val] of Object.entries(hist)) {
+    const pair = key.split(',');
+    res.push({ pre: Number(pair[0]), suf: Number(pair[1]), prob: val });
+  }
+  return res;
+}
+
 // --- Affix count distribution helpers ---
 function binomCoeff(n, k) {
   if (k < 0 || k > n) return 0;
@@ -415,11 +452,12 @@ function getSlotDistribution(quality, category, ilvl) {
     if (ilvl >= threshold) {
       return [{ pre: 1, suf: 1, prob: 1 }];
     }
-    // Below threshold: each slot 50% independent, at least 1 guaranteed
+    // Game engine distribution for magic items (from reference implementation):
+    // suffix-only=50%, prefix-only=25%, both prefix+suffix=25%
     return [
-      { pre: 1, suf: 1, prob: 0.25 },
-      { pre: 1, suf: 0, prob: 0.375 },
-      { pre: 0, suf: 1, prob: 0.375 }
+      { pre: 0, suf: 1, prob: 0.50 },
+      { pre: 1, suf: 0, prob: 0.25 },
+      { pre: 1, suf: 1, prob: 0.25 }
     ];
   }
   if (quality === 'rare') {
@@ -440,20 +478,18 @@ function getSlotDistribution(quality, category, ilvl) {
 }
 
 function rareSlotDist(minTotal, maxTotal) {
+  // Use sequential coin-flip model matching game engine behavior.
+  // For variable affix counts, weight each count by binomial probability.
   const extraSlots = maxTotal - minTotal;
   const merged = {};
   for (let extra = 0; extra <= extraSlots; extra++) {
     const N = minTotal + extra;
     const pN = binomCoeff(extraSlots, extra) * Math.pow(0.5, extraSlots);
-    const wild = N - 2;
-    for (let wp = 0; wp <= wild; wp++) {
-      let nPre = 1 + wp, nSuf = 1 + (wild - wp);
-      if (nPre > 3) { nSuf += nPre - 3; nPre = 3; }
-      if (nSuf > 3) { nPre += nSuf - 3; nSuf = 3; }
-      const pWild = binomCoeff(wild, wp) * Math.pow(0.5, wild);
-      const key = nPre + ',' + nSuf;
-      if (!merged[key]) merged[key] = { pre: nPre, suf: nSuf, prob: 0 };
-      merged[key].prob += pN * pWild;
+    const dist = coinFlipDist(N, 3);
+    for (const d of dist) {
+      const key = d.pre + ',' + d.suf;
+      if (!merged[key]) merged[key] = { pre: d.pre, suf: d.suf, prob: 0 };
+      merged[key].prob += pN * d.prob;
     }
   }
   return Object.values(merged);
@@ -473,17 +509,14 @@ function craftedSlotDist(ilvl) {
     countProbs = [{ n: 1, prob: 0.4 }, { n: 2, prob: 0.2 }, { n: 3, prob: 0.2 }, { n: 4, prob: 0.2 }];
   }
 
-  // For each count, distribute into prefix/suffix (each slot 50/50, max 3 each)
+  // For each count, distribute into prefix/suffix using sequential coin-flip model
   const merged = {};
   for (const cp of countProbs) {
-    for (let wp = 0; wp <= cp.n; wp++) {
-      let nPre = wp, nSuf = cp.n - wp;
-      if (nPre > 3) { nSuf += nPre - 3; nPre = 3; }
-      if (nSuf > 3) { nPre += nSuf - 3; nSuf = 3; }
-      const pWild = binomCoeff(cp.n, wp) * Math.pow(0.5, cp.n);
-      const key = nPre + ',' + nSuf;
-      if (!merged[key]) merged[key] = { pre: nPre, suf: nSuf, prob: 0 };
-      merged[key].prob += cp.prob * pWild;
+    const dist = coinFlipDist(cp.n, 3);
+    for (const d of dist) {
+      const key = d.pre + ',' + d.suf;
+      if (!merged[key]) merged[key] = { pre: d.pre, suf: d.suf, prob: 0 };
+      merged[key].prob += cp.prob * d.prob;
     }
   }
   return Object.values(merged);
@@ -874,15 +907,15 @@ function _findOptimalIlvlWork(lld) {
     const eligPre = filterByAlvl(validPre, alvl);
     const eligSuf = filterByAlvl(validSuf, alvl);
 
-    const preTotalFreq = eligPre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-    const sufTotalFreq = eligSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const preTotalFreq = eligPre.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
+    const sufTotalFreq = eligSuf.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
 
     const preProbs = selPre.map(a => {
-      const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      const f = getEffectiveFreq(a, item);
       return preTotalFreq > 0 ? f / preTotalFreq : 0;
     });
     const sufProbs = selSuf.map(a => {
-      const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      const f = getEffectiveFreq(a, item);
       return sufTotalFreq > 0 ? f / sufTotalFreq : 0;
     });
 
@@ -891,8 +924,8 @@ function _findOptimalIlvlWork(lld) {
     if (prob <= 0) continue;
 
     if (lld) {
-      const lldPreFreq = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-      const lldSufFreq = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const lldPreFreq = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + getEffectiveFreq(a, item), 0);
+      const lldSufFreq = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX).reduce((s, a) => s + getEffectiveFreq(a, item), 0);
       const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
       const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
 
@@ -1841,8 +1874,8 @@ function renderPreview() {
     const alvl = calcAlvl(state.ilvl, item);
     const eligPre = filterByAlvl(validPrefixes, alvl);
     const eligSuf = filterByAlvl(validSuffixes, alvl);
-    const preTotalFreq = eligPre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-    const sufTotalFreq = eligSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+    const preTotalFreq = eligPre.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
+    const sufTotalFreq = eligSuf.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
 
     html += '<div class="separator"></div>';
     html += '<div class="odds-section">';
@@ -1867,7 +1900,7 @@ function renderPreview() {
     const preProbs = [];
     for (const a of selPre) {
       const eligible = affixEligibleAtAlvl(a, alvl);
-      const freq = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      const freq = getEffectiveFreq(a, item);
       const prob = eligible && preTotalFreq > 0 ? freq / preTotalFreq : 0;
       preProbs.push(prob);
       const ratio = prob > 0 ? Math.round(1 / prob) : 0;
@@ -1880,7 +1913,7 @@ function renderPreview() {
     const sufProbs = [];
     for (const a of selSuf) {
       const eligible = affixEligibleAtAlvl(a, alvl);
-      const freq = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0);
+      const freq = getEffectiveFreq(a, item);
       const prob = eligible && sufTotalFreq > 0 ? freq / sufTotalFreq : 0;
       sufProbs.push(prob);
       const ratio = prob > 0 ? Math.round(1 / prob) : 0;
@@ -1926,8 +1959,8 @@ function renderPreview() {
 
       const lldEligPre = eligPre.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
       const lldEligSuf = eligSuf.filter(a => (parseInt(a.levelreq) || 0) <= LLD_MAX_LEVEL);
-      const lldPreFreq = lldEligPre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-      const lldSufFreq = lldEligSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const lldPreFreq = lldEligPre.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
+      const lldSufFreq = lldEligSuf.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
       const pPreLLD = preTotalFreq > 0 ? lldPreFreq / preTotalFreq : 1;
       const pSufLLD = sufTotalFreq > 0 ? lldSufFreq / sufTotalFreq : 1;
 
@@ -2241,16 +2274,16 @@ function findIlvlRange(item, validPre, validSuf, selPre, selSuf, quality, catego
     if (!allSelected.every(a => affixEligibleAtAlvl(a, alvl))) return 0;
     const ePre = filterByAlvl(validPre, alvl);
     const eSuf = filterByAlvl(validSuf, alvl);
-    const ptf = ePre.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-    const stf = eSuf.reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-    const pp = selPre.map(a => { const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return ptf > 0 ? f / ptf : 0; });
-    const sp = selSuf.map(a => { const f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return stf > 0 ? f / stf : 0; });
+    const ptf = ePre.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
+    const stf = eSuf.reduce((s, a) => s + getEffectiveFreq(a, item), 0);
+    const pp = selPre.map(a => { const f = getEffectiveFreq(a, item); return ptf > 0 ? f / ptf : 0; });
+    const sp = selSuf.map(a => { const f = getEffectiveFreq(a, item); return stf > 0 ? f / stf : 0; });
     const sd = getSlotDistribution(quality, category, ilvl);
     let prob = computeCombinedProb(sd, pp, sp);
     if (isEthereal) prob *= (1 / 20);
     if (lldMax !== undefined) {
-      const lldPreFreq = ePre.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
-      const lldSufFreq = eSuf.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)), 0);
+      const lldPreFreq = ePre.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + getEffectiveFreq(a, item), 0);
+      const lldSufFreq = eSuf.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + getEffectiveFreq(a, item), 0);
       const pPreLLD = ptf > 0 ? lldPreFreq / ptf : 1;
       const pSufLLD = stf > 0 ? lldSufFreq / stf : 1;
       let pLLD = 0;
@@ -2294,17 +2327,17 @@ function buildIlvlBreakdownExact(item, validPre, validSuf, selPre, selSuf, quali
     if (!allSelected.every(function(a) { return affixEligibleAtAlvl(a, alvl); })) continue;
     var ePre = filterByAlvl(validPre, alvl);
     var eSuf = filterByAlvl(validSuf, alvl);
-    var ptf = ePre.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
-    var stf = eSuf.reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
-    var pp = selPre.map(function(a) { var f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return ptf > 0 ? f / ptf : 0; });
-    var sp = selSuf.map(function(a) { var f = (a.frequency === '' ? 1 : parseInt(a.frequency) || 0); return stf > 0 ? f / stf : 0; });
+    var ptf = ePre.reduce(function(s, a) { return s + getEffectiveFreq(a, item); }, 0);
+    var stf = eSuf.reduce(function(s, a) { return s + getEffectiveFreq(a, item); }, 0);
+    var pp = selPre.map(function(a) { var f = getEffectiveFreq(a, item); return ptf > 0 ? f / ptf : 0; });
+    var sp = selSuf.map(function(a) { var f = getEffectiveFreq(a, item); return stf > 0 ? f / stf : 0; });
     var sd = getSlotDistribution(quality, category, ilvl);
     var prob = computeCombinedProb(sd, pp, sp);
     if (prob <= 0) continue;
     if (isEthereal) prob *= (1 / 20);
     if (lldMax !== undefined) {
-      var lldPreFreq = ePre.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
-      var lldSufFreq = eSuf.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + ((a.frequency === '' ? 1 : parseInt(a.frequency) || 0)); }, 0);
+      var lldPreFreq = ePre.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + getEffectiveFreq(a, item); }, 0);
+      var lldSufFreq = eSuf.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + getEffectiveFreq(a, item); }, 0);
       var pPreLLD = ptf > 0 ? lldPreFreq / ptf : 1;
       var pSufLLD = stf > 0 ? lldSufFreq / stf : 1;
       var pLLD = 0;
