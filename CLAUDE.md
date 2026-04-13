@@ -41,6 +41,14 @@ fs.writeFileSync('data/js/' + fname + '.js',
   'const ' + varName + ' = ' + JSON.stringify(rows, null, 2) + ';\n');
 ```
 
+### Affix Display Names
+
+MagicPrefix.js and MagicSuffix.js entries may include a `displayName` field that contains the localized in-game display name (resolved from Diablo 2 `.tbl` string tables in `data/tbl/`). The `Name` field retains the internal game file name. Use `affixDisplayName(affix)` in item-builder.html to get the display name with fallback to `Name`.
+
+### Automated Conversion
+
+Run `node convert-data.js` from the repo root to regenerate all JS data files from the TXT sources. This script also resolves affix display names from the `.tbl` string tables.
+
 ### File-to-variable mapping
 
 | TXT file | JS variable |

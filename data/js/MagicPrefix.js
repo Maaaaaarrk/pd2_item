@@ -6201,7 +6201,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Eburine"
   },
   {
     "Name": "Bone",
@@ -6729,7 +6730,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Void"
   },
   {
     "Name": "Null",
@@ -8181,7 +8183,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Vermilion"
   },
   {
     "Name": "Jagged",
@@ -18477,7 +18480,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Aureolic"
   },
   {
     "Name": "Mechanist's",
@@ -18521,7 +18525,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Mechanic's"
   },
   {
     "Name": "Artificer's",
@@ -18565,7 +18570,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Artisan's"
   },
   {
     "Name": "Jeweler's",
@@ -18653,7 +18659,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Lunar"
   },
   {
     "Name": "Arcadian",
@@ -19005,7 +19012,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Acrobatic"
   },
   {
     "Name": "Harpoonist's",
@@ -19225,7 +19233,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Acrobatic"
   },
   {
     "Name": "Gymnast's",
@@ -19269,7 +19278,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Gymnastic"
   },
   {
     "Name": "Athlete's",
@@ -19313,7 +19323,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Athletic"
   },
   {
     "Name": "Harpoonist's",
@@ -20237,7 +20248,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Cursing"
   },
   {
     "Name": "Fungal",
@@ -20457,7 +20469,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Mojo"
   },
   {
     "Name": "Golemlord's",
@@ -20985,7 +20998,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Warden's"
   },
   {
     "Name": "Guardian's",
@@ -21689,7 +21703,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Natural"
   },
   {
     "Name": "Trainer's",
@@ -21997,7 +22012,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Natural"
   },
   {
     "Name": "Terra's",
@@ -22041,7 +22057,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Terrene"
   },
   {
     "Name": "Gaea's",
@@ -22085,7 +22102,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Gaean"
   },
   {
     "Name": "Entrapping",
@@ -22657,7 +22675,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Enlightened"
   },
   {
     "Name": "Miocene",
@@ -22701,7 +22720,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Enlightened"
   },
   {
     "Name": "Oligocene",
@@ -22745,7 +22765,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Honorable"
   },
   {
     "Name": "Oligocene",
@@ -22789,7 +22810,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Honorable"
   },
   {
     "Name": "Eocene",
@@ -22833,7 +22855,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Righteous"
   },
   {
     "Name": "Eocene",
@@ -22877,7 +22900,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Righteous"
   },
   {
     "Name": "Paleocene",
@@ -22921,7 +22945,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Faithful"
   },
   {
     "Name": "Paleocene",
@@ -22965,7 +22990,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Faithful"
   },
   {
     "Name": "Knave's",
@@ -23185,7 +23211,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fool's"
   },
   {
     "Name": "Loud",
@@ -23229,7 +23256,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Alarming"
   },
   {
     "Name": "Calling",
@@ -23361,7 +23389,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Howling"
   },
   {
     "Name": "Gritty",
@@ -23405,7 +23434,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Grinding"
   },
   {
     "Name": "Paradox",
@@ -23845,7 +23875,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Snowy"
   },
   {
     "Name": "Shivering",
@@ -24021,7 +24052,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fiery"
   },
   {
     "Name": "Smoldering",
@@ -24197,7 +24229,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Condensing"
   },
   {
     "Name": "Static",
@@ -24505,7 +24538,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Foul"
   },
   {
     "Name": "Corosive",
@@ -24549,7 +24583,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Corrosive"
   },
   {
     "Name": "Toxic",
@@ -27057,7 +27092,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Snowy"
   },
   {
     "Name": "Shivering",
@@ -27233,7 +27269,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Snowy"
   },
   {
     "Name": "Shivering",
@@ -27409,7 +27446,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Snowy"
   },
   {
     "Name": "Shivering",
@@ -27585,7 +27623,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fiery"
   },
   {
     "Name": "Smoldering",
@@ -27761,7 +27800,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fiery"
   },
   {
     "Name": "Smoldering",
@@ -27937,7 +27977,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fiery"
   },
   {
     "Name": "Smoldering",
@@ -28685,7 +28726,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Foul"
   },
   {
     "Name": "Toxic",
@@ -28861,7 +28903,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Foul"
   },
   {
     "Name": "Toxic",
@@ -29037,7 +29080,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Foul"
   },
   {
     "Name": "Toxic",
@@ -29653,7 +29697,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fiery"
   },
   {
     "Name": "Smoldering",
@@ -29785,7 +29830,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Snowy"
   },
   {
     "Name": "Shivering",
@@ -31897,7 +31943,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Foul"
   },
   {
     "Name": "Plagued",
@@ -33745,7 +33792,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Artisan's"
   },
   {
     "Name": "Artificer's",
@@ -33789,7 +33837,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Artisan's"
   },
   {
     "Name": "Lancer's",
@@ -35417,7 +35466,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Lunar"
   },
   {
     "Name": "Arcadian",
@@ -35769,7 +35819,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fiery"
   },
   {
     "Name": "Snowflake",
@@ -35813,7 +35864,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Snowy"
   },
   {
     "Name": "Virulent",
@@ -37309,7 +37361,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Fiery"
   },
   {
     "Name": "Smoldering",
@@ -37441,7 +37494,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Snowy"
   },
   {
     "Name": "Shivering",
@@ -39289,7 +39343,8 @@ const MAGIC_PREFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "Foul"
   },
   {
     "Name": "Plagued",

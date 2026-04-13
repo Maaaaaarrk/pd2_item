@@ -249,6 +249,8 @@ let typeMap = {};
 for (const t of itemTypes) { if (t.Code) typeMap[t.Code] = t; }
 let rarePrefixes = RARE_PREFIX_DATA.filter(a => a.name);
 let rareSuffixes = RARE_SUFFIX_DATA.filter(a => a.name);
+// Helper: get the localized display name for an affix (falls back to internal Name)
+function affixDisplayName(a) { return a.displayName || a.Name || ""; }
 
 // Misc items that aren't in Armor/Weapons data
 const miscItems = [
@@ -1110,7 +1112,7 @@ function createFuzzyAffixSelect(sectionIndex, slotIndex) {
       var desc = affixDescription(a);
       var lvlReq = parseInt(a.levelreq) || 0;
       var typeTag = a._poolType === "prefix" ? "[P]" : "[S]";
-      var label = typeTag + " " + a.Name + (desc ? " \u2014 " + desc : "") + " (lvl " + a.level + (lvlReq > 0 ? ", req " + lvlReq : "") + ")";
+      var label = typeTag + " " + affixDisplayName(a) + (desc ? " \u2014 " + desc : "") + " (lvl " + a.level + (lvlReq > 0 ? ", req " + lvlReq : "") + ")";
       if (ft && !label.toLowerCase().includes(ft)) return;
       var opt = document.createElement("option");
       opt.value = idx; opt.textContent = label; sel.appendChild(opt);
@@ -1520,7 +1522,7 @@ function createAffixSelect(type, slotIndex, affixPool) {
       // Build a description of what the affix does
       const desc = affixDescription(a);
       const lvlReq = parseInt(a.levelreq) || 0;
-      const label = a.Name + (desc ? ' — ' + desc : '') + ' (lvl ' + a.level + (lvlReq > 0 ? ', req ' + lvlReq : '') + ')';
+      const label = affixDisplayName(a) + (desc ? ' — ' + desc : '') + ' (lvl ' + a.level + (lvlReq > 0 ? ', req ' + lvlReq : '') + ')';
       if (ft && !label.toLowerCase().includes(ft)) return;
       const opt = document.createElement('option');
       opt.value = idx;
@@ -1786,9 +1788,9 @@ function renderPreview() {
     html += '<div class="base-name">' + esc(item.name) + '</div>';
   } else {
     let itemName = '';
-    if (selPre.length > 0) itemName += selPre[0].Name + ' ';
+    if (selPre.length > 0) itemName += affixDisplayName(selPre[0]) + ' ';
     itemName += item.name;
-    if (selSuf.length > 0) itemName += ' ' + selSuf[0].Name;
+    if (selSuf.length > 0) itemName += ' ' + affixDisplayName(selSuf[0]);
     html += '<div class="item-name ' + nameClass + '">' + esc(itemName) + '</div>';
   }
 
@@ -1905,7 +1907,7 @@ function renderPreview() {
       preProbs.push(prob);
       const ratio = prob > 0 ? Math.round(1 / prob) : 0;
       html += '<div class="odds-row">';
-      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + (!eligible ? ' <span style="color:#cc4444;">(needs alvl ' + a.level + (a.maxlevel ? '-' + a.maxlevel : '+') + ')</span>' : '') + '</span>';
+      html += '<span class="odds-label" title="' + esc(affixDisplayName(a)) + '">' + esc(affixDisplayName(a)) + (!eligible ? ' <span style="color:#cc4444;">(needs alvl ' + a.level + (a.maxlevel ? '-' + a.maxlevel : '+') + ')</span>' : '') + '</span>';
       html += '<span class="odds-pct">' + (eligible ? oddsText(ratio) : '<span style="color:#cc4444;">impossible</span>') + '</span>';
       html += '</div>';
     }
@@ -1918,7 +1920,7 @@ function renderPreview() {
       sufProbs.push(prob);
       const ratio = prob > 0 ? Math.round(1 / prob) : 0;
       html += '<div class="odds-row">';
-      html += '<span class="odds-label" title="' + esc(a.Name) + '">' + esc(a.Name) + (!eligible ? ' <span style="color:#cc4444;">(needs alvl ' + a.level + (a.maxlevel ? '-' + a.maxlevel : '+') + ')</span>' : '') + '</span>';
+      html += '<span class="odds-label" title="' + esc(affixDisplayName(a)) + '">' + esc(affixDisplayName(a)) + (!eligible ? ' <span style="color:#cc4444;">(needs alvl ' + a.level + (a.maxlevel ? '-' + a.maxlevel : '+') + ')</span>' : '') + '</span>';
       html += '<span class="odds-pct">' + (eligible ? oddsText(ratio) : '<span style="color:#cc4444;">impossible</span>') + '</span>';
       html += '</div>';
     }
