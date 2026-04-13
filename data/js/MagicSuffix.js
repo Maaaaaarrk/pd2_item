@@ -1185,7 +1185,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Thawing"
   },
   {
     "Name": "of Flame",
@@ -1581,7 +1582,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Quality",
@@ -4089,7 +4091,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of the Colossus"
   },
   {
     "Name": "of the Leech",
@@ -5453,7 +5456,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Amicae"
   },
   {
     "Name": "of Warding",
@@ -5849,7 +5853,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Inflammability"
   },
   {
     "Name": "of Amianthus",
@@ -5937,7 +5942,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Quenching"
   },
   {
     "Name": "of Coolness",
@@ -6025,7 +6031,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Inflammability"
   },
   {
     "Name": "of Amianthus",
@@ -6113,7 +6120,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Quenching"
   },
   {
     "Name": "of Faith",
@@ -6729,7 +6737,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of the Scirocco"
   },
   {
     "Name": "of Warming",
@@ -6905,7 +6914,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of the Scirocco"
   },
   {
     "Name": "of Desire",
@@ -8049,7 +8059,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Thawing"
   },
   {
     "Name": "of Flame",
@@ -8621,7 +8632,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Quality",
@@ -9061,7 +9073,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Craftsmanship",
@@ -9105,7 +9118,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Craftsmanship",
@@ -9149,7 +9163,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Quality",
@@ -9369,7 +9384,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Craftsmanship",
@@ -9413,7 +9429,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Quality",
@@ -9589,7 +9606,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Quality",
@@ -14033,7 +14051,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of the Colossus"
   },
   {
     "Name": "of the Squid",
@@ -14385,7 +14404,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of the Colossus"
   },
   {
     "Name": "of the Jackal",
@@ -14781,7 +14801,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Sustenance"
   },
   {
     "Name": "of Substinence",
@@ -14825,7 +14846,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Sustenance"
   },
   {
     "Name": "of Substinence",
@@ -14869,7 +14891,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Sustenance"
   },
   {
     "Name": "of Vita",
@@ -15133,7 +15156,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Sustenance"
   },
   {
     "Name": "of Substinence",
@@ -15177,7 +15201,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Sustenance"
   },
   {
     "Name": "of Vita",
@@ -15353,7 +15378,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Sustenance"
   },
   {
     "Name": "of Vita",
@@ -16629,7 +16655,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Atlas"
   },
   {
     "Name": "of Strength",
@@ -17509,7 +17536,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Transportation"
   },
   {
     "Name": "of Acceleration",
@@ -17773,7 +17801,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Restoration"
   },
   {
     "Name": "of Ages",
@@ -17949,7 +17978,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of the Centaur"
   },
   {
     "Name": "of Memory",
@@ -18565,7 +18595,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Charged Bolt"
   },
   {
     "Name": "of Charged Shield",
@@ -18609,7 +18640,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Charged Bolt"
   },
   {
     "Name": "of Charged Shield",
@@ -18653,7 +18685,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Charged Bolt"
   },
   {
     "Name": "of Icebolt",
@@ -20193,7 +20226,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Magic Arrow"
   },
   {
     "Name": "of Magic Arrows",
@@ -20237,7 +20271,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Magic Arrow"
   },
   {
     "Name": "of Fire Arrows",
@@ -20281,7 +20316,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Arrow"
   },
   {
     "Name": "of Fire Arrows",
@@ -20325,7 +20361,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Arrow"
   },
   {
     "Name": "of Inner Sight",
@@ -20457,7 +20494,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Jab"
   },
   {
     "Name": "of Jabbing",
@@ -20501,7 +20539,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Jab"
   },
   {
     "Name": "of Cold Arrows",
@@ -20545,7 +20584,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Cold Arrow"
   },
   {
     "Name": "of Cold Arrows",
@@ -20589,7 +20629,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Cold Arrow"
   },
   {
     "Name": "of Multiple Shot",
@@ -20897,7 +20938,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Exploding Arrow"
   },
   {
     "Name": "of Exploding Arrows",
@@ -20941,7 +20983,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Exploding Arrow"
   },
   {
     "Name": "of Slow Missiles",
@@ -20985,7 +21028,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Slow Missile"
   },
   {
     "Name": "of Slow Missiles",
@@ -21029,7 +21073,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Slow Missile"
   },
   {
     "Name": "of Impaling Strike",
@@ -21249,7 +21294,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Ice Arrow"
   },
   {
     "Name": "of Ice Arrows",
@@ -21293,7 +21339,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Ice Arrow"
   },
   {
     "Name": "of Guided Arrows",
@@ -21337,7 +21384,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Guided Arrow"
   },
   {
     "Name": "of Guided Arrows",
@@ -21381,7 +21429,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Guided Arrow"
   },
   {
     "Name": "of Charged Strike",
@@ -21601,7 +21650,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Immolating Arrow"
   },
   {
     "Name": "of Immolating Arrows",
@@ -21645,7 +21695,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Immolating Arrow"
   },
   {
     "Name": "of Fending",
@@ -21777,7 +21828,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Freezing Arrow"
   },
   {
     "Name": "of Freezing Arrows",
@@ -21821,7 +21873,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Freezing Arrow"
   },
   {
     "Name": "of Lightning Strike",
@@ -22041,7 +22094,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Bolt"
   },
   {
     "Name": "of Fire Bolts",
@@ -22085,7 +22139,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Bolt"
   },
   {
     "Name": "of Charged Bolts",
@@ -22129,7 +22184,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Charged Bolt"
   },
   {
     "Name": "of Charged Bolts",
@@ -22173,7 +22229,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Charged Bolt"
   },
   {
     "Name": "of Ice Bolts",
@@ -22217,7 +22274,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Ice Bolt"
   },
   {
     "Name": "of Ice Bolts",
@@ -22261,7 +22319,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Ice Bolt"
   },
   {
     "Name": "of Frozen Armor",
@@ -22569,7 +22628,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Frost Nova"
   },
   {
     "Name": "of Frost Novas",
@@ -22613,7 +22673,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Frost Nova"
   },
   {
     "Name": "of Ice Blasts",
@@ -22657,7 +22718,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Ice Blast"
   },
   {
     "Name": "of Ice Blasts",
@@ -22701,7 +22763,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Ice Blast"
   },
   {
     "Name": "of Blazing",
@@ -22833,7 +22896,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Ball"
   },
   {
     "Name": "of Fire Balls",
@@ -22877,7 +22941,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Ball"
   },
   {
     "Name": "of Novas",
@@ -22921,7 +22986,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Nova"
   },
   {
     "Name": "of Novas",
@@ -22965,7 +23031,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Nova"
   },
   {
     "Name": "of Lightning",
@@ -23185,7 +23252,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Wall"
   },
   {
     "Name": "of Fire Walls",
@@ -23229,7 +23297,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Wall"
   },
   {
     "Name": "of Enchantment",
@@ -23537,7 +23606,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Glacial Spike"
   },
   {
     "Name": "of Glacial Spikes",
@@ -23581,7 +23651,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Glacial Spike"
   },
   {
     "Name": "of Meteors",
@@ -23625,7 +23696,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Meteor"
   },
   {
     "Name": "of Meteors",
@@ -23669,7 +23741,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Meteor"
   },
   {
     "Name": "of Thunder Storm",
@@ -23889,7 +23962,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Blizzard"
   },
   {
     "Name": "of Blizzards",
@@ -23933,7 +24007,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Blizzard"
   },
   {
     "Name": "of Chilling Armor",
@@ -24065,7 +24140,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Hydra"
   },
   {
     "Name": "of Hydras",
@@ -24109,7 +24185,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Hydra"
   },
   {
     "Name": "of Frozen Orbs",
@@ -24153,7 +24230,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Frozen Orb"
   },
   {
     "Name": "of Frozen Orbs",
@@ -24197,7 +24275,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Frozen Orb"
   },
   {
     "Name": "of Amplify Damage",
@@ -24505,7 +24584,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Raise Skeleton"
   },
   {
     "Name": "of Raise Skeletons",
@@ -24549,7 +24629,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Raise Skeleton"
   },
   {
     "Name": "of Dim Vision",
@@ -24857,7 +24938,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Corpse Explosion"
   },
   {
     "Name": "of Corpse Explosions",
@@ -24901,7 +24983,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Corpse Explosion"
   },
   {
     "Name": "of Clay Golem Summoning",
@@ -24945,7 +25028,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Clay Golem"
   },
   {
     "Name": "of Clay Golem Summoning",
@@ -24989,7 +25073,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Clay Golem"
   },
   {
     "Name": "of Iron Maiden",
@@ -25209,7 +25294,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Wall"
   },
   {
     "Name": "of Bone Walls",
@@ -25253,7 +25339,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Wall"
   },
   {
     "Name": "of Raise Skeletal Mages",
@@ -25297,7 +25384,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Skeletal Mages"
   },
   {
     "Name": "of Raise Skeletal Mages",
@@ -25341,7 +25429,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Skeletal Mages"
   },
   {
     "Name": "of Confusion",
@@ -25649,7 +25738,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Spear"
   },
   {
     "Name": "of Bone Spears",
@@ -25693,7 +25783,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Spear"
   },
   {
     "Name": "of Blood Golem Summoning",
@@ -25737,7 +25828,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Blood Golem"
   },
   {
     "Name": "of Blood Golem Summoning",
@@ -25781,7 +25873,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Blood Golem"
   },
   {
     "Name": "of Attraction",
@@ -25825,7 +25918,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Attract"
   },
   {
     "Name": "of Attraction",
@@ -25869,7 +25963,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Attract"
   },
   {
     "Name": "of Decrepification",
@@ -25913,7 +26008,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Decrepify"
   },
   {
     "Name": "of Decrepification",
@@ -25957,7 +26053,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Decrepify"
   },
   {
     "Name": "of Bone Imprisonment",
@@ -26001,7 +26098,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Prison"
   },
   {
     "Name": "of Bone Imprisonment",
@@ -26045,7 +26143,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Prison"
   },
   {
     "Name": "of Iron Golem Creation",
@@ -26089,7 +26188,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Iron Golem"
   },
   {
     "Name": "of Iron Golem Creation",
@@ -26133,7 +26233,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Iron Golem"
   },
   {
     "Name": "of Lower Resistance",
@@ -26265,7 +26366,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Poison Nova"
   },
   {
     "Name": "of Poison Novas",
@@ -26309,7 +26411,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Poison Nova"
   },
   {
     "Name": "of Bone Spirits",
@@ -26353,7 +26456,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Spirit"
   },
   {
     "Name": "of Bone Spirits",
@@ -26397,7 +26501,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Bone Spirit"
   },
   {
     "Name": "of Fire Golem Summoning",
@@ -26441,7 +26546,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Golem"
   },
   {
     "Name": "of Fire Golem Summoning",
@@ -26485,7 +26591,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fire Golem"
   },
   {
     "Name": "of Revivification",
@@ -26705,7 +26812,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Holy Bolt"
   },
   {
     "Name": "of Holy Bolts",
@@ -26749,7 +26857,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Holy Bolt"
   },
   {
     "Name": "of Zeal",
@@ -26969,7 +27078,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Blessed Hammer"
   },
   {
     "Name": "of Blessed Hammers",
@@ -27013,7 +27123,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Blessed Hammer"
   },
   {
     "Name": "of Conversion",
@@ -27321,7 +27432,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Howl"
   },
   {
     "Name": "of Howling",
@@ -27365,7 +27477,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Howl"
   },
   {
     "Name": "of Potion Finding",
@@ -27409,7 +27522,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Find Potion"
   },
   {
     "Name": "of Potion Finding",
@@ -27453,7 +27567,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Find Potion"
   },
   {
     "Name": "of Taunting",
@@ -27497,7 +27612,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Taunt"
   },
   {
     "Name": "of Taunting",
@@ -27541,7 +27657,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Taunt"
   },
   {
     "Name": "of Shouting",
@@ -27585,7 +27702,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Shout"
   },
   {
     "Name": "of Shouting",
@@ -27629,7 +27747,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Shout"
   },
   {
     "Name": "of Stunning",
@@ -27673,7 +27792,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Stun"
   },
   {
     "Name": "of Stunning",
@@ -27717,7 +27837,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Stun"
   },
   {
     "Name": "of Item Finding",
@@ -27761,7 +27882,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Find Item"
   },
   {
     "Name": "of Item Finding",
@@ -27805,7 +27927,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Find Item"
   },
   {
     "Name": "of Concentration",
@@ -28465,7 +28588,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Molten Boulder"
   },
   {
     "Name": "of Molten Boulders",
@@ -28509,7 +28633,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Molten Boulder"
   },
   {
     "Name": "of Eruption",
@@ -28553,7 +28678,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fissure"
   },
   {
     "Name": "of Eruption",
@@ -28597,7 +28723,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Fissure"
   },
   {
     "Name": "of Cyclone Armor",
@@ -29169,7 +29296,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Amplify Damage"
   },
   {
     "Name": "of the Icicle",
@@ -29785,7 +29913,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Quality",
@@ -29917,7 +30046,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Quality",
@@ -30005,7 +30135,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Craftmanship"
   },
   {
     "Name": "of Blight",
@@ -36165,7 +36296,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of the Centaur"
   },
   {
     "Name": "of Clarity",
@@ -36649,7 +36781,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Clout"
   },
   {
     "Name": "Maxlevel Clout",
@@ -36693,7 +36826,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Clout"
   },
   {
     "Name": "of the Bear",
@@ -39553,7 +39687,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Amplify Damage"
   },
   {
     "Name": "of Damage Amplification",
@@ -39597,7 +39732,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Amplify Damage"
   },
   {
     "Name": "of Swords",
@@ -39817,7 +39953,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Amplify Damage"
   },
   {
     "Name": "of Damage Amplification",
@@ -39861,7 +39998,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Amplify Damage"
   },
   {
     "Name": "of Damage Amplification",
@@ -39905,7 +40043,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Amplify Damage"
   },
   {
     "Name": "of Lower Resist",
@@ -43249,7 +43388,8 @@ const MAGIC_SUFFIX_DATA = [
     "etype5": "",
     "divide": "",
     "multiply": "",
-    "add": "0"
+    "add": "0",
+    "displayName": "of Atlas"
   },
   {
     "Name": "of Energy",
