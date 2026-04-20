@@ -2,7 +2,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hand Axe",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "hax",
     "alternateGfx": "hax",
     "namestr": "hax",
@@ -178,7 +178,7 @@ const WEAPONS_DATA = [
   {
     "name": "Axe",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "axe",
     "alternateGfx": "axe",
     "namestr": "axe",
@@ -354,7 +354,7 @@ const WEAPONS_DATA = [
   {
     "name": "Double Axe",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "2ax",
     "alternateGfx": "axe",
     "namestr": "2ax",
@@ -530,7 +530,7 @@ const WEAPONS_DATA = [
   {
     "name": "Military Pick",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "mpi",
     "alternateGfx": "axe",
     "namestr": "mpi",
@@ -706,7 +706,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Axe",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "wax",
     "alternateGfx": "hax",
     "namestr": "wax",
@@ -1762,7 +1762,7 @@ const WEAPONS_DATA = [
   {
     "name": "Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "wnd",
     "alternateGfx": "wnd",
     "namestr": "wnd",
@@ -1938,7 +1938,7 @@ const WEAPONS_DATA = [
   {
     "name": "Yew Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "ywn",
     "alternateGfx": "ywn",
     "namestr": "ywn",
@@ -2114,7 +2114,7 @@ const WEAPONS_DATA = [
   {
     "name": "Bone Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "bwn",
     "alternateGfx": "bwn",
     "namestr": "bwn",
@@ -2290,7 +2290,7 @@ const WEAPONS_DATA = [
   {
     "name": "Grim Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "gwn",
     "alternateGfx": "bwn",
     "namestr": "gwn",
@@ -2466,7 +2466,7 @@ const WEAPONS_DATA = [
   {
     "name": "Club",
     "type": "club",
-    "type2": "",
+    "type2": "1han",
     "code": "clb",
     "alternateGfx": "clb",
     "namestr": "clb",
@@ -2642,7 +2642,7 @@ const WEAPONS_DATA = [
   {
     "name": "Scepter",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "scp",
     "alternateGfx": "mac",
     "namestr": "scp",
@@ -2818,7 +2818,7 @@ const WEAPONS_DATA = [
   {
     "name": "Grand Scepter",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "gsc",
     "alternateGfx": "mac",
     "namestr": "gsc",
@@ -2994,7 +2994,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Scepter",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "wsp",
     "alternateGfx": "whm",
     "namestr": "wsp",
@@ -3170,7 +3170,7 @@ const WEAPONS_DATA = [
   {
     "name": "Spiked Club",
     "type": "club",
-    "type2": "",
+    "type2": "1han",
     "code": "spc",
     "alternateGfx": "clb",
     "namestr": "spc",
@@ -3346,7 +3346,7 @@ const WEAPONS_DATA = [
   {
     "name": "Mace",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "mac",
     "alternateGfx": "mac",
     "namestr": "mac",
@@ -3522,7 +3522,7 @@ const WEAPONS_DATA = [
   {
     "name": "Morning Star",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "mst",
     "alternateGfx": "mac",
     "namestr": "mst",
@@ -3698,7 +3698,7 @@ const WEAPONS_DATA = [
   {
     "name": "Flail",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "fla",
     "alternateGfx": "fla",
     "namestr": "fla",
@@ -3874,7 +3874,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Hammer",
     "type": "hamm",
-    "type2": "",
+    "type2": "1han",
     "code": "whm",
     "alternateGfx": "whm",
     "namestr": "whm",
@@ -4402,7 +4402,7 @@ const WEAPONS_DATA = [
   {
     "name": "Short Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "ssd",
     "alternateGfx": "ssd",
     "namestr": "ssd",
@@ -4578,7 +4578,7 @@ const WEAPONS_DATA = [
   {
     "name": "Scimitar",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "scm",
     "alternateGfx": "scm",
     "namestr": "scm",
@@ -4754,7 +4754,7 @@ const WEAPONS_DATA = [
   {
     "name": "Saber",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "sbr",
     "alternateGfx": "scm",
     "namestr": "sbr",
@@ -4930,7 +4930,7 @@ const WEAPONS_DATA = [
   {
     "name": "Falchion",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "flc",
     "alternateGfx": "flc",
     "namestr": "flc",
@@ -5282,7 +5282,7 @@ const WEAPONS_DATA = [
   {
     "name": "Broad Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "bsd",
     "alternateGfx": "bsd",
     "namestr": "bsd",
@@ -5458,7 +5458,7 @@ const WEAPONS_DATA = [
   {
     "name": "Long Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "lsd",
     "alternateGfx": "lsd",
     "namestr": "lsd",
@@ -5634,7 +5634,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "wsd",
     "alternateGfx": "flc",
     "namestr": "wsd",
@@ -6866,7 +6866,7 @@ const WEAPONS_DATA = [
   {
     "name": "Dagger",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "dgr",
     "alternateGfx": "dgr",
     "namestr": "dgr",
@@ -7042,7 +7042,7 @@ const WEAPONS_DATA = [
   {
     "name": "Dirk",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "dir",
     "alternateGfx": "dir",
     "namestr": "dir",
@@ -7218,7 +7218,7 @@ const WEAPONS_DATA = [
   {
     "name": "Kriss",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "kri",
     "alternateGfx": "dir",
     "namestr": "kri",
@@ -7394,7 +7394,7 @@ const WEAPONS_DATA = [
   {
     "name": "Blade",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "bld",
     "alternateGfx": "dgr",
     "namestr": "bld",
@@ -7570,7 +7570,7 @@ const WEAPONS_DATA = [
   {
     "name": "Throwing Knife",
     "type": "tkni",
-    "type2": "",
+    "type2": "1han",
     "code": "tkf",
     "alternateGfx": "dgr",
     "namestr": "tkf",
@@ -7599,7 +7599,7 @@ const WEAPONS_DATA = [
     "cost": "352",
     "gamble cost": "5268",
     "magic lvl": "",
-    "auto prefix": "308",
+    "auto prefix": "327",
     "OpenBetaGfx": "dgr",
     "normcode": "tkf",
     "ubercode": "9tk",
@@ -7746,7 +7746,7 @@ const WEAPONS_DATA = [
   {
     "name": "Throwing Axe",
     "type": "taxe",
-    "type2": "",
+    "type2": "1han",
     "code": "tax",
     "alternateGfx": "hax",
     "namestr": "tax",
@@ -7922,7 +7922,7 @@ const WEAPONS_DATA = [
   {
     "name": "Balanced Knife",
     "type": "tkni",
-    "type2": "",
+    "type2": "1han",
     "code": "bkf",
     "alternateGfx": "dgr",
     "namestr": "bkf",
@@ -7951,7 +7951,7 @@ const WEAPONS_DATA = [
     "cost": "918",
     "gamble cost": "13793",
     "magic lvl": "",
-    "auto prefix": "308",
+    "auto prefix": "327",
     "OpenBetaGfx": "dgr",
     "normcode": "bkf",
     "ubercode": "9bk",
@@ -8098,7 +8098,7 @@ const WEAPONS_DATA = [
   {
     "name": "Balanced Axe",
     "type": "taxe",
-    "type2": "",
+    "type2": "1han",
     "code": "bal",
     "alternateGfx": "hax",
     "namestr": "bal",
@@ -8274,7 +8274,7 @@ const WEAPONS_DATA = [
   {
     "name": "Javelin",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "jav",
     "alternateGfx": "jav",
     "namestr": "jav",
@@ -8450,7 +8450,7 @@ const WEAPONS_DATA = [
   {
     "name": "Pilum",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "pil",
     "alternateGfx": "pil",
     "namestr": "pil",
@@ -8626,7 +8626,7 @@ const WEAPONS_DATA = [
   {
     "name": "Short Spear",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "ssp",
     "alternateGfx": "jav",
     "namestr": "ssp",
@@ -8802,7 +8802,7 @@ const WEAPONS_DATA = [
   {
     "name": "Glaive",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "glv",
     "alternateGfx": "glv",
     "namestr": "glv",
@@ -8978,7 +8978,7 @@ const WEAPONS_DATA = [
   {
     "name": "Throwing Spear",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "tsp",
     "alternateGfx": "pil",
     "namestr": "tsp",
@@ -15138,7 +15138,7 @@ const WEAPONS_DATA = [
   {
     "name": "decoy dagger",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "d33",
     "alternateGfx": "dgr",
     "namestr": "d33",
@@ -15314,7 +15314,7 @@ const WEAPONS_DATA = [
   {
     "name": "Gidbinn",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "g33",
     "alternateGfx": "dgr",
     "namestr": "g33",
@@ -15490,7 +15490,7 @@ const WEAPONS_DATA = [
   {
     "name": "Wirt's Leg",
     "type": "club",
-    "type2": "",
+    "type2": "1han",
     "code": "leg",
     "alternateGfx": "clb",
     "namestr": "leg",
@@ -15666,7 +15666,7 @@ const WEAPONS_DATA = [
   {
     "name": "Horadric Malus",
     "type": "hamm",
-    "type2": "",
+    "type2": "1han",
     "code": "hdm",
     "alternateGfx": "whm",
     "namestr": "hdm",
@@ -15842,7 +15842,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hellforge Hammer",
     "type": "hamm",
-    "type2": "",
+    "type2": "1han",
     "code": "hfh",
     "alternateGfx": "whm",
     "namestr": "hfh",
@@ -16370,7 +16370,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hatchet",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "9ha",
     "alternateGfx": "hax",
     "namestr": "9ha",
@@ -16546,7 +16546,7 @@ const WEAPONS_DATA = [
   {
     "name": "Cleaver",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "9ax",
     "alternateGfx": "axe",
     "namestr": "9ax",
@@ -16722,7 +16722,7 @@ const WEAPONS_DATA = [
   {
     "name": "Twin Axe",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "92a",
     "alternateGfx": "axe",
     "namestr": "92a",
@@ -16898,7 +16898,7 @@ const WEAPONS_DATA = [
   {
     "name": "Crowbill",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "9mp",
     "alternateGfx": "axe",
     "namestr": "9mp",
@@ -17074,7 +17074,7 @@ const WEAPONS_DATA = [
   {
     "name": "Naga",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "9wa",
     "alternateGfx": "hax",
     "namestr": "9wa",
@@ -18130,7 +18130,7 @@ const WEAPONS_DATA = [
   {
     "name": "Burnt Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "9wn",
     "alternateGfx": "wnd",
     "namestr": "9wn",
@@ -18306,7 +18306,7 @@ const WEAPONS_DATA = [
   {
     "name": "Petrified Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "9yw",
     "alternateGfx": "ywn",
     "namestr": "9yw",
@@ -18482,7 +18482,7 @@ const WEAPONS_DATA = [
   {
     "name": "Tomb Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "9bw",
     "alternateGfx": "bwn",
     "namestr": "9bw",
@@ -18658,7 +18658,7 @@ const WEAPONS_DATA = [
   {
     "name": "Grave Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "9gw",
     "alternateGfx": "bwn",
     "namestr": "9gw",
@@ -18834,7 +18834,7 @@ const WEAPONS_DATA = [
   {
     "name": "Cudgel",
     "type": "club",
-    "type2": "",
+    "type2": "1han",
     "code": "9cl",
     "alternateGfx": "clb",
     "namestr": "9cl",
@@ -19010,7 +19010,7 @@ const WEAPONS_DATA = [
   {
     "name": "Rune Scepter",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "9sc",
     "alternateGfx": "mac",
     "namestr": "9sc",
@@ -19186,7 +19186,7 @@ const WEAPONS_DATA = [
   {
     "name": "Holy Water Sprinkler",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "9qs",
     "alternateGfx": "mac",
     "namestr": "9qs",
@@ -19362,7 +19362,7 @@ const WEAPONS_DATA = [
   {
     "name": "Divine Scepter",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "9ws",
     "alternateGfx": "whm",
     "namestr": "9ws",
@@ -19538,7 +19538,7 @@ const WEAPONS_DATA = [
   {
     "name": "Barbed Club",
     "type": "club",
-    "type2": "",
+    "type2": "1han",
     "code": "9sp",
     "alternateGfx": "clb",
     "namestr": "9sp",
@@ -19714,7 +19714,7 @@ const WEAPONS_DATA = [
   {
     "name": "Flanged Mace",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "9ma",
     "alternateGfx": "mac",
     "namestr": "9ma",
@@ -19890,7 +19890,7 @@ const WEAPONS_DATA = [
   {
     "name": "Jagged Star",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "9mt",
     "alternateGfx": "mac",
     "namestr": "9mt",
@@ -20066,7 +20066,7 @@ const WEAPONS_DATA = [
   {
     "name": "Knout",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "9fl",
     "alternateGfx": "fla",
     "namestr": "9fl",
@@ -20242,7 +20242,7 @@ const WEAPONS_DATA = [
   {
     "name": "Battle Hammer",
     "type": "hamm",
-    "type2": "",
+    "type2": "1han",
     "code": "9wh",
     "alternateGfx": "whm",
     "namestr": "9wh",
@@ -20770,7 +20770,7 @@ const WEAPONS_DATA = [
   {
     "name": "Gladius",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "9ss",
     "alternateGfx": "ssd",
     "namestr": "9ss",
@@ -20946,7 +20946,7 @@ const WEAPONS_DATA = [
   {
     "name": "Cutlass",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "9sm",
     "alternateGfx": "scm",
     "namestr": "9sm",
@@ -21122,7 +21122,7 @@ const WEAPONS_DATA = [
   {
     "name": "Shamshir",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "9sb",
     "alternateGfx": "scm",
     "namestr": "9sb",
@@ -21298,7 +21298,7 @@ const WEAPONS_DATA = [
   {
     "name": "Tulwar",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "9fc",
     "alternateGfx": "flc",
     "namestr": "9fc",
@@ -21650,7 +21650,7 @@ const WEAPONS_DATA = [
   {
     "name": "Battle Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "9bs",
     "alternateGfx": "bsd",
     "namestr": "9bs",
@@ -21826,7 +21826,7 @@ const WEAPONS_DATA = [
   {
     "name": "Rune Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "9ls",
     "alternateGfx": "lsd",
     "namestr": "9ls",
@@ -22002,7 +22002,7 @@ const WEAPONS_DATA = [
   {
     "name": "Ancient Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "9wd",
     "alternateGfx": "flc",
     "namestr": "9wd",
@@ -23234,7 +23234,7 @@ const WEAPONS_DATA = [
   {
     "name": "Poignard",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "9dg",
     "alternateGfx": "dgr",
     "namestr": "9dg",
@@ -23410,7 +23410,7 @@ const WEAPONS_DATA = [
   {
     "name": "Rondel",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "9di",
     "alternateGfx": "dir",
     "namestr": "9di",
@@ -23586,7 +23586,7 @@ const WEAPONS_DATA = [
   {
     "name": "Cinquedeas",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "9kr",
     "alternateGfx": "dir",
     "namestr": "9kr",
@@ -23762,7 +23762,7 @@ const WEAPONS_DATA = [
   {
     "name": "Stilleto",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "9bl",
     "alternateGfx": "dgr",
     "namestr": "9bl",
@@ -23938,7 +23938,7 @@ const WEAPONS_DATA = [
   {
     "name": "Battle Dart",
     "type": "tkni",
-    "type2": "",
+    "type2": "1han",
     "code": "9tk",
     "alternateGfx": "dgr",
     "namestr": "9tk",
@@ -23967,7 +23967,7 @@ const WEAPONS_DATA = [
     "cost": "6820",
     "gamble cost": "204800",
     "magic lvl": "",
-    "auto prefix": "308",
+    "auto prefix": "327",
     "OpenBetaGfx": "dgr",
     "normcode": "tkf",
     "ubercode": "9tk",
@@ -24114,7 +24114,7 @@ const WEAPONS_DATA = [
   {
     "name": "Francisca",
     "type": "taxe",
-    "type2": "",
+    "type2": "1han",
     "code": "9ta",
     "alternateGfx": "hax",
     "namestr": "9ta",
@@ -24290,7 +24290,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Dart",
     "type": "tkni",
-    "type2": "",
+    "type2": "1han",
     "code": "9bk",
     "alternateGfx": "dgr",
     "namestr": "9bk",
@@ -24319,7 +24319,7 @@ const WEAPONS_DATA = [
     "cost": "8620",
     "gamble cost": "259000",
     "magic lvl": "",
-    "auto prefix": "308",
+    "auto prefix": "327",
     "OpenBetaGfx": "dgr",
     "normcode": "bkf",
     "ubercode": "9bk",
@@ -24466,7 +24466,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hurlbat",
     "type": "taxe",
-    "type2": "",
+    "type2": "1han",
     "code": "9b8",
     "alternateGfx": "hax",
     "namestr": "9b8",
@@ -24642,7 +24642,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Javelin",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "9ja",
     "alternateGfx": "jav",
     "namestr": "9ja",
@@ -24818,7 +24818,7 @@ const WEAPONS_DATA = [
   {
     "name": "Great Pilum",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "9pi",
     "alternateGfx": "pil",
     "namestr": "9pi",
@@ -24994,7 +24994,7 @@ const WEAPONS_DATA = [
   {
     "name": "Simbilan",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "9s9",
     "alternateGfx": "jav",
     "namestr": "9s9",
@@ -25170,7 +25170,7 @@ const WEAPONS_DATA = [
   {
     "name": "Spiculum",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "9gl",
     "alternateGfx": "glv",
     "namestr": "9gl",
@@ -25346,7 +25346,7 @@ const WEAPONS_DATA = [
   {
     "name": "Harpoon",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "9ts",
     "alternateGfx": "pil",
     "namestr": "9ts",
@@ -30450,7 +30450,7 @@ const WEAPONS_DATA = [
   {
     "name": "KhalimFlail",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "qf1",
     "alternateGfx": "fla",
     "namestr": "qf1",
@@ -30626,7 +30626,7 @@ const WEAPONS_DATA = [
   {
     "name": "SuperKhalimFlail",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "qf2",
     "alternateGfx": "fla",
     "namestr": "qf2",
@@ -30978,7 +30978,7 @@ const WEAPONS_DATA = [
   {
     "name": "Katar",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "ktr",
     "alternateGfx": "ktr",
     "namestr": "ktr",
@@ -31154,7 +31154,7 @@ const WEAPONS_DATA = [
   {
     "name": "Wrist Blade",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "wrb",
     "alternateGfx": "ktr",
     "namestr": "wrb",
@@ -31330,7 +31330,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hatchet Hands",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "axf",
     "alternateGfx": "axf",
     "namestr": "axf",
@@ -31506,7 +31506,7 @@ const WEAPONS_DATA = [
   {
     "name": "Cestus",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "ces",
     "alternateGfx": "axf",
     "namestr": "ces",
@@ -31682,7 +31682,7 @@ const WEAPONS_DATA = [
   {
     "name": "Claws",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "clw",
     "alternateGfx": "clw",
     "namestr": "clw",
@@ -31858,7 +31858,7 @@ const WEAPONS_DATA = [
   {
     "name": "Blade Talons",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "btl",
     "alternateGfx": "clw",
     "namestr": "btl",
@@ -32034,7 +32034,7 @@ const WEAPONS_DATA = [
   {
     "name": "Scissors Katar",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "skr",
     "alternateGfx": "skr",
     "namestr": "skr",
@@ -32210,7 +32210,7 @@ const WEAPONS_DATA = [
   {
     "name": "Quhab",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "9ar",
     "alternateGfx": "ktr",
     "namestr": "9ar",
@@ -32386,7 +32386,7 @@ const WEAPONS_DATA = [
   {
     "name": "Wrist Spike",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "9wb",
     "alternateGfx": "ktr",
     "namestr": "9wb",
@@ -32562,7 +32562,7 @@ const WEAPONS_DATA = [
   {
     "name": "Fascia",
     "type": "h2h",
-    "type2": "",
+    "type2": "1han",
     "code": "9xf",
     "alternateGfx": "axf",
     "namestr": "9xf",
@@ -32738,7 +32738,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hand Scythe",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "9cs",
     "alternateGfx": "axf",
     "namestr": "9cs",
@@ -32914,7 +32914,7 @@ const WEAPONS_DATA = [
   {
     "name": "Greater Claws",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "9lw",
     "alternateGfx": "clw",
     "namestr": "9lw",
@@ -33090,7 +33090,7 @@ const WEAPONS_DATA = [
   {
     "name": "Greater Talons",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "9tw",
     "alternateGfx": "clw",
     "namestr": "9tw",
@@ -33266,7 +33266,7 @@ const WEAPONS_DATA = [
   {
     "name": "Scissors Quhab",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "9qr",
     "alternateGfx": "skr",
     "namestr": "9qr",
@@ -33442,7 +33442,7 @@ const WEAPONS_DATA = [
   {
     "name": "Suwayyah",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "7ar",
     "alternateGfx": "ktr",
     "namestr": "7ar",
@@ -33618,7 +33618,7 @@ const WEAPONS_DATA = [
   {
     "name": "Wrist Sword",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "7wb",
     "alternateGfx": "ktr",
     "namestr": "7wb",
@@ -33794,7 +33794,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Fist",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "7xf",
     "alternateGfx": "axf",
     "namestr": "7xf",
@@ -33970,7 +33970,7 @@ const WEAPONS_DATA = [
   {
     "name": "Battle Cestus",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "7cs",
     "alternateGfx": "axf",
     "namestr": "7cs",
@@ -34146,7 +34146,7 @@ const WEAPONS_DATA = [
   {
     "name": "Feral Claws",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "7lw",
     "alternateGfx": "clw",
     "namestr": "7lw",
@@ -34322,7 +34322,7 @@ const WEAPONS_DATA = [
   {
     "name": "Runic Talons",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "7tw",
     "alternateGfx": "clw",
     "namestr": "7tw",
@@ -34498,7 +34498,7 @@ const WEAPONS_DATA = [
   {
     "name": "Scissors Suwayyah",
     "type": "h2h2",
-    "type2": "",
+    "type2": "1han",
     "code": "7qr",
     "alternateGfx": "skr",
     "namestr": "7qr",
@@ -34674,7 +34674,7 @@ const WEAPONS_DATA = [
   {
     "name": "Tomahawk",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "7ha",
     "alternateGfx": "hax",
     "namestr": "7ha",
@@ -34850,7 +34850,7 @@ const WEAPONS_DATA = [
   {
     "name": "Small Crescent",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "7ax",
     "alternateGfx": "axe",
     "namestr": "7ax",
@@ -35026,7 +35026,7 @@ const WEAPONS_DATA = [
   {
     "name": "Ettin Axe",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "72a",
     "alternateGfx": "axe",
     "namestr": "72a",
@@ -35202,7 +35202,7 @@ const WEAPONS_DATA = [
   {
     "name": "War Spike",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "7mp",
     "alternateGfx": "axe",
     "namestr": "7mp",
@@ -35378,7 +35378,7 @@ const WEAPONS_DATA = [
   {
     "name": "Berserker Axe",
     "type": "axe",
-    "type2": "",
+    "type2": "1han",
     "code": "7wa",
     "alternateGfx": "hax",
     "namestr": "7wa",
@@ -36434,7 +36434,7 @@ const WEAPONS_DATA = [
   {
     "name": "Polished Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "7wn",
     "alternateGfx": "wnd",
     "namestr": "7wn",
@@ -36610,7 +36610,7 @@ const WEAPONS_DATA = [
   {
     "name": "Ghost Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "7yw",
     "alternateGfx": "ywn",
     "namestr": "7yw",
@@ -36786,7 +36786,7 @@ const WEAPONS_DATA = [
   {
     "name": "Lich Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "7bw",
     "alternateGfx": "bwn",
     "namestr": "7bw",
@@ -36962,7 +36962,7 @@ const WEAPONS_DATA = [
   {
     "name": "Unearthed Wand",
     "type": "wand",
-    "type2": "",
+    "type2": "1han",
     "code": "7gw",
     "alternateGfx": "bwn",
     "namestr": "7gw",
@@ -37138,7 +37138,7 @@ const WEAPONS_DATA = [
   {
     "name": "Truncheon",
     "type": "club",
-    "type2": "",
+    "type2": "1han",
     "code": "7cl",
     "alternateGfx": "clb",
     "namestr": "7cl",
@@ -37314,7 +37314,7 @@ const WEAPONS_DATA = [
   {
     "name": "Mighty Scepter",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "7sc",
     "alternateGfx": "mac",
     "namestr": "7sc",
@@ -37490,7 +37490,7 @@ const WEAPONS_DATA = [
   {
     "name": "Seraph Rod",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "7qs",
     "alternateGfx": "mac",
     "namestr": "7qs",
@@ -37666,7 +37666,7 @@ const WEAPONS_DATA = [
   {
     "name": "Caduceus",
     "type": "scep",
-    "type2": "",
+    "type2": "1han",
     "code": "7ws",
     "alternateGfx": "whm",
     "namestr": "7ws",
@@ -37842,7 +37842,7 @@ const WEAPONS_DATA = [
   {
     "name": "Tyrant Club",
     "type": "club",
-    "type2": "",
+    "type2": "1han",
     "code": "7sp",
     "alternateGfx": "clb",
     "namestr": "7sp",
@@ -38018,7 +38018,7 @@ const WEAPONS_DATA = [
   {
     "name": "Reinforced Mace",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "7ma",
     "alternateGfx": "mac",
     "namestr": "7ma",
@@ -38194,7 +38194,7 @@ const WEAPONS_DATA = [
   {
     "name": "Devil Star",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "7mt",
     "alternateGfx": "mac",
     "namestr": "7mt",
@@ -38370,7 +38370,7 @@ const WEAPONS_DATA = [
   {
     "name": "Scourge",
     "type": "mace",
-    "type2": "",
+    "type2": "1han",
     "code": "7fl",
     "alternateGfx": "fla",
     "namestr": "7fl",
@@ -38546,7 +38546,7 @@ const WEAPONS_DATA = [
   {
     "name": "Legendary Mallet",
     "type": "hamm",
-    "type2": "",
+    "type2": "1han",
     "code": "7wh",
     "alternateGfx": "whm",
     "namestr": "7wh",
@@ -39074,7 +39074,7 @@ const WEAPONS_DATA = [
   {
     "name": "Falcata",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "7ss",
     "alternateGfx": "ssd",
     "namestr": "7ss",
@@ -39250,7 +39250,7 @@ const WEAPONS_DATA = [
   {
     "name": "Ataghan",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "7sm",
     "alternateGfx": "scm",
     "namestr": "7sm",
@@ -39426,7 +39426,7 @@ const WEAPONS_DATA = [
   {
     "name": "Elegant Blade",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "7sb",
     "alternateGfx": "scm",
     "namestr": "7sb",
@@ -39602,7 +39602,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hydra Edge",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "7fc",
     "alternateGfx": "flc",
     "namestr": "7fc",
@@ -39954,7 +39954,7 @@ const WEAPONS_DATA = [
   {
     "name": "Conquest Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "7bs",
     "alternateGfx": "bsd",
     "namestr": "7bs",
@@ -40130,7 +40130,7 @@ const WEAPONS_DATA = [
   {
     "name": "Cryptic Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "7ls",
     "alternateGfx": "lsd",
     "namestr": "7ls",
@@ -40306,7 +40306,7 @@ const WEAPONS_DATA = [
   {
     "name": "Mythical Sword",
     "type": "swor",
-    "type2": "",
+    "type2": "1han",
     "code": "7wd",
     "alternateGfx": "flc",
     "namestr": "7wd",
@@ -41538,7 +41538,7 @@ const WEAPONS_DATA = [
   {
     "name": "Bone Knife",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "7dg",
     "alternateGfx": "dgr",
     "namestr": "7dg",
@@ -41714,7 +41714,7 @@ const WEAPONS_DATA = [
   {
     "name": "Mithral Point",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "7di",
     "alternateGfx": "dir",
     "namestr": "7di",
@@ -41890,7 +41890,7 @@ const WEAPONS_DATA = [
   {
     "name": "Fanged Knife",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "7kr",
     "alternateGfx": "dir",
     "namestr": "7kr",
@@ -42066,7 +42066,7 @@ const WEAPONS_DATA = [
   {
     "name": "Legend Spike",
     "type": "knif",
-    "type2": "",
+    "type2": "1han",
     "code": "7bl",
     "alternateGfx": "dgr",
     "namestr": "7bl",
@@ -42242,7 +42242,7 @@ const WEAPONS_DATA = [
   {
     "name": "Flying Knife",
     "type": "tkni",
-    "type2": "",
+    "type2": "1han",
     "code": "7tk",
     "alternateGfx": "dgr",
     "namestr": "7tk",
@@ -42271,7 +42271,7 @@ const WEAPONS_DATA = [
     "cost": "16070",
     "gamble cost": "482600",
     "magic lvl": "",
-    "auto prefix": "308",
+    "auto prefix": "327",
     "OpenBetaGfx": "dgr",
     "normcode": "tkf",
     "ubercode": "9tk",
@@ -42418,7 +42418,7 @@ const WEAPONS_DATA = [
   {
     "name": "Flying Axe",
     "type": "taxe",
-    "type2": "",
+    "type2": "1han",
     "code": "7ta",
     "alternateGfx": "hax",
     "namestr": "7ta",
@@ -42594,7 +42594,7 @@ const WEAPONS_DATA = [
   {
     "name": "Winged Knife",
     "type": "tkni",
-    "type2": "",
+    "type2": "1han",
     "code": "7bk",
     "alternateGfx": "dgr",
     "namestr": "7bk",
@@ -42623,7 +42623,7 @@ const WEAPONS_DATA = [
     "cost": "20010",
     "gamble cost": "600960",
     "magic lvl": "",
-    "auto prefix": "308",
+    "auto prefix": "327",
     "OpenBetaGfx": "dgr",
     "normcode": "bkf",
     "ubercode": "9bk",
@@ -42770,7 +42770,7 @@ const WEAPONS_DATA = [
   {
     "name": "Winged Axe",
     "type": "taxe",
-    "type2": "",
+    "type2": "1han",
     "code": "7b8",
     "alternateGfx": "hax",
     "namestr": "7b8",
@@ -42946,7 +42946,7 @@ const WEAPONS_DATA = [
   {
     "name": "Hyperion Javelin",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "7ja",
     "alternateGfx": "jav",
     "namestr": "7ja",
@@ -43122,7 +43122,7 @@ const WEAPONS_DATA = [
   {
     "name": "Stygian Pilum",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "7pi",
     "alternateGfx": "pil",
     "namestr": "7pi",
@@ -43298,7 +43298,7 @@ const WEAPONS_DATA = [
   {
     "name": "Balrog Spear",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "7s7",
     "alternateGfx": "jav",
     "namestr": "7s7",
@@ -43474,7 +43474,7 @@ const WEAPONS_DATA = [
   {
     "name": "Ghost Glaive",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "7gl",
     "alternateGfx": "glv",
     "namestr": "7gl",
@@ -43650,7 +43650,7 @@ const WEAPONS_DATA = [
   {
     "name": "Winged Harpoon",
     "type": "jave",
-    "type2": "",
+    "type2": "1han",
     "code": "7ts",
     "alternateGfx": "pil",
     "namestr": "7ts",
@@ -50338,7 +50338,7 @@ const WEAPONS_DATA = [
   {
     "name": "Maiden Javelin",
     "type": "ajav",
-    "type2": "",
+    "type2": "1han",
     "code": "am5",
     "alternateGfx": "pil",
     "namestr": "am5",
@@ -52098,7 +52098,7 @@ const WEAPONS_DATA = [
   {
     "name": "Ceremonial Javelin",
     "type": "ajav",
-    "type2": "",
+    "type2": "1han",
     "code": "ama",
     "alternateGfx": "pil",
     "namestr": "ama",
@@ -53858,7 +53858,7 @@ const WEAPONS_DATA = [
   {
     "name": "MatriarchalJavelin",
     "type": "ajav",
-    "type2": "",
+    "type2": "1han",
     "code": "amf",
     "alternateGfx": "pil",
     "namestr": "amf",

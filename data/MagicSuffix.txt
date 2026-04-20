@@ -186,7 +186,7 @@ of Flame	183	1	1	1	4	44	3				5	12	fire-min		1	1	fire-max		2	5							weap	misl			
 of Fire	184	1	1	1	15	55	11				4	12	fire-min		2	8	fire-max		12	22							weap	misl						wand	orb	staf					0
 of Burning	185	1	1	1	25	65	18				3	12	fire-min		20	30	fire-max		37	72					1	dred	weap	misl						wand	orb	staf					0
 of Incineration	186	100	1	1	43		35				2	12	fire-min		57	90	fire-max		102	146					1	dred	mele	misl						wand	orb	staf					0
-of Flame	187	100	1	1	40	80	30				2	12	fire-min		1	1	fire-max		2	6							glov	ring	amul												0
+of Flame	187	100		1	40	80	30				2	12	fire-min		1	1	fire-max		2	6							glov	ring	amul												0
 of Passion	188	100	1	1	15		11				2	12	fire-min		1	3	fire-max		6	10					1	dred	jewl														0
 of Shock	189	1	1	1	4	44	3				5	13	ltng-min		1	1	ltng-max		3	8							weap	misl						wand	orb	staf					0
 of Lightning	190	1	1	1	15	55	11				4	13	ltng-min		1	1	ltng-max		14	24							weap	misl						wand	orb	staf					0
@@ -796,10 +796,10 @@ of Disintegration	793	1	1	1	1		1				4	165	map-play-ac%		-50	-40	map-glob-density
 of Fumbling	794	1	1	1	1		1				4	314	map-play-block		-20	-10	map-glob-density		13	18	map-play-mag-gold%		15	20			t1m	t2m													0
 of Bumbling	795	1	1	1	1		1				4	314	map-play-block		-30	-20	map-glob-density		18	23	map-play-mag-gold%		30	35			t2m	t3m													0
 of Blundering	796	1	1	1	1		1				4	314	map-play-block		-40	-30	map-glob-density		23	25	map-play-mag-gold%		40	50			t3m	t4m													0
-of Defending	797	100	1	1	45		20				3	251	red-dmg%		5	10											tors	shld													5000
-of Defending	798	100	1	1	65		40				2	251	red-dmg%		5	10											belt														10000
-of Protecting	799	100	1	1	65		40				2	251	red-dmg%		10	15											tors	shld													15000
-of Guardianship	800	100	1	1	85		60				1	251	red-dmg%		15	20											tors	shld													20000
+of Defending	797	100	1	1	45		20				3	251	red-dmg%		8	14											tors	shld													5000
+of Defending	798	100	1	1	65		40				2	251	red-dmg%		5	10											belt	helm													10000
+of Protecting	799	100	1	1	65		40				2	251	red-dmg%		14	20											tors	shld													15000
+of Guardianship	800	100	1	1	85		60				2	251	red-dmg%		20	25											tors	shld													20000
 of Savagery	801	100	1	1	18	58	15				2	252	deadly		5	10											weap	misl						staf	wand	orb					0
 of Devastation	802	100	1	1	28	68	25				2	252	deadly		10	15											weap	misl						staf	wand	orb					0
 of Havoc	803	100	1	1	38		35				2	252	deadly		15	20											weap	misl						staf	wand	orb					0
@@ -1032,3 +1032,7 @@ of Regeneration	1023	100	1	1	52		47				2	320	regen		20	30											orb	wand				
 of Regeneration	1024	100	1	1	14		14				4	320	regen		10	20											staf														0
 of Regeneration	1025	100	1	1	30		28				4	320	regen		20	30											staf														0
 of Regeneration	1026	100	1	1	52		47				2	320	regen		30	40											staf														0
+of Control	1027	1	1	1	21		19				2	321	block		6	12											glov														0
+of Discipline	1028	1	1	1	41		37				2	321	block		12	16											glov														0
+of Momentum	1027	1	1	1	21		19				2	321	block2		10	10											glov														0
+of Evasion	1028	1	1	1	41		37				2	321	block2		20	20											glov														0
