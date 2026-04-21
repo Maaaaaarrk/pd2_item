@@ -2653,6 +2653,10 @@ function loadFromHash() {
   if (params.m === 'f') {
     state.affixMode = 'fuzzy';
     if (params.fs) {
+      // Build the fuzzy pool now so we can resolve affix indices below.
+      // Without this, state._fuzzyPool is still empty and every poolIdx lookup
+      // returns -1, causing the saved affixes to be dropped on reload.
+      buildFuzzyPool();
       const pool = state._fuzzyPool || [];
       const sectionTokens = params.fs.split('|');
       state.fuzzySections = [];
@@ -2675,6 +2679,9 @@ function loadFromHash() {
       setAffixMode('fuzzy');
       buildFuzzySections();
     } else if (params.fa) {
+      // Build the fuzzy pool now so we can resolve affix indices below
+      // (mirrors the fs branch above).
+      buildFuzzyPool();
       const pool = state._fuzzyPool || [];
       const faTokens = params.fa.split('.');
       const secAffixes = [];
