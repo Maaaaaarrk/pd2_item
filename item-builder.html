@@ -63,6 +63,7 @@
   .item-preview .affix-stats .prefix-stat { color: #6495ed; }
   .item-preview .affix-stats .suffix-stat { color: #6495ed; }
   .item-preview .affix-stats .auto-stat { color: #6495ed; }
+  .item-preview .affix-stats .auto-stat-odds { color: #8a7e5a; font-size: 0.75rem; font-style: italic; margin: -1px 0 4px 0; }
   .item-preview .req { color: #555040; font-size: 0.85rem; margin-top: 8px; }
   .item-preview .separator { border-top: 1px solid #2a2418; margin: 8px 0; }
   .no-item { color: #3a3228; font-style: italic; margin-top: 60px; }
@@ -395,11 +396,34 @@ function filterByAlvl(affixList, alvl) {
   return affixList.filter(a => affixEligibleAtAlvl(a, alvl));
 }
 
-// --- Pick the auto-prefix (staffmod) entry for an item base, if any.
-// Item's `auto prefix` field is a group ID into AUTOMAGIC_DATA. We pick the
-// first matching entry whose group equals the item's auto-prefix AND whose
-// itype matches the item — deterministic placeholder for render only. ---
-function getAutoPrefixForItem(item) {
+// --- Auto-prefix (staffmod) pool: all AUTOMAGIC entries that match the item's
+// auto-prefix group, itype, and (if ilvl is given) the entry's level bracket.
+// Automagic level/maxlevel gates against ilvl directly, not alvl. ---
+function getAutoPrefixPoolForItem(item, ilvl) {
+  if (!item || !automagic || !automagic.length) return [];
+  const ap = item['auto prefix'];
+  if (!ap || ap === '0' || ap === '') return [];
+  const { fullChain, direct } = getItemTypeSets(item);
+  return automagic.filter(a => {
+    if (a.group !== ap) return false;
+    if (!affixMatchesItem(a, fullChain, direct)) return false;
+    if (ilvl !== undefined && !affixEligibleAtAlvl(a, ilvl)) return false;
+    return true;
+  });
+}
+
+// --- Pick a single auto-prefix entry to render. Prefer the highest-tier
+// eligible entry at the given ilvl; fall back to first group match otherwise. ---
+function getAutoPrefixForItem(item, ilvl) {
+  if (ilvl !== undefined) {
+    const pool = getAutoPrefixPoolForItem(item, ilvl);
+    if (!pool.length) return null;
+    return pool.reduce((best, a) => {
+      const bv = parseInt(best.mod1min) || 0;
+      const av = parseInt(a.mod1min) || 0;
+      return av > bv ? a : best;
+    });
+  }
   if (!item || !automagic || !automagic.length) return null;
   const ap = item['auto prefix'];
   if (!ap || ap === '0' || ap === '') return null;
@@ -410,6 +434,55 @@ function getAutoPrefixForItem(item) {
     return a;
   }
   return null;
+}
+
+// --- Odds for the displayed staffmod entry at the current ilvl ---
+function getAutoPrefixOdds(item, ilvl, displayedEntry) {
+  if (!displayedEntry) return null;
+  const pool = getAutoPrefixPoolForItem(item, ilvl);
+  if (!pool.length) return null;
+  const freqOf = a => parseInt(a.frequency) || 1;
+  const totalFreq = pool.reduce((s, a) => s + freqOf(a), 0);
+  if (totalFreq <= 0) return null;
+
+  const sameSkill = pool.filter(a =>
+    a.mod1code === displayedEntry.mod1code &&
+    a.mod1param === displayedEntry.mod1param
+  );
+  const sameSkillFreq = sameSkill.reduce((s, a) => s + freqOf(a), 0);
+
+  let maxTierEntry = displayedEntry;
+  let maxTierVal = parseInt(displayedEntry.mod1min) || 0;
+  for (const a of sameSkill) {
+    const v = parseInt(a.mod1min) || 0;
+    if (v > maxTierVal) { maxTierVal = v; maxTierEntry = a; }
+  }
+  const maxTierFreq = freqOf(maxTierEntry);
+
+  let plus3Ineligible = false;
+  if (maxTierVal < 3) {
+    const { fullChain, direct } = getItemTypeSets(item);
+    const ap = item['auto prefix'];
+    const has3 = automagic.some(a =>
+      a.group === ap &&
+      affixMatchesItem(a, fullChain, direct) &&
+      a.mod1code === displayedEntry.mod1code &&
+      a.mod1param === displayedEntry.mod1param &&
+      (parseInt(a.mod1min) || 0) === 3
+    );
+    plus3Ineligible = has3;
+  }
+
+  const tiered = sameSkill.some(a => (parseInt(a.mod1min) || 0) !== maxTierVal) || plus3Ineligible;
+
+  return {
+    skillProb: sameSkillFreq / totalFreq,
+    maxTierProb: maxTierFreq / totalFreq,
+    maxTierVal,
+    tiered,
+    plus3Ineligible,
+    poolSize: pool.length
+  };
 }
 
 // --- Effective frequency: when item has magic lvl > 0, multiply freq by affix level ---
@@ -1853,7 +1926,7 @@ function renderPreview() {
 
   // Affix mods
   const allMods = [];
-  const autoEntry = getAutoPrefixForItem(item);
+  const autoEntry = getAutoPrefixForItem(item, state.ilvl);
   if (autoEntry) {
     for (let i = 1; i <= 3; i++) {
       const code = autoEntry['mod' + i + 'code'];
@@ -1876,10 +1949,32 @@ function renderPreview() {
   if (allMods.length > 0) {
     html += '<div class="separator"></div>';
     html += '<div class="affix-stats">';
-    for (const m of allMods) {
+    for (let i = 0; i < allMods.length; i++) {
+      const m = allMods[i];
       const cls = m.type + '-stat';
       let line = formatMod(m.code, m.param, m.min, m.max);
       html += '<div class="' + cls + ' mod-line">' + esc(line) + '</div>';
+      const next = allMods[i + 1];
+      if (m.type === 'auto' && (!next || next.type !== 'auto') && autoEntry) {
+        const odds = getAutoPrefixOdds(item, state.ilvl, autoEntry);
+        if (odds) {
+          const skillPct = (odds.skillProb * 100).toFixed(1);
+          const minVal = parseInt(autoEntry.mod1min) || 0;
+          const maxVal = parseInt(autoEntry.mod1max) || 0;
+          const isVariableRoll = minVal !== maxVal;
+          let oddsLine;
+          if (isVariableRoll || minVal <= 0) {
+            oddsLine = skillPct + '% chance for this entry';
+          } else if (odds.plus3Ineligible) {
+            oddsLine = skillPct + '% for this skill at +' + minVal + ' &middot; +3 tier needs higher ilvl';
+          } else if (minVal === 3) {
+            oddsLine = skillPct + '% chance for +3 of this skill';
+          } else {
+            oddsLine = skillPct + '% chance for this skill at +' + minVal;
+          }
+          html += '<div class="auto-stat-odds">' + oddsLine + '</div>';
+        }
+      }
     }
     html += '</div>';
   }
