@@ -1,0 +1,46 @@
+Name	*comment	version	spawnable	rare	level	maxlevel	levelreq	classspecific	class	classlevelreq	frequency	group	mod1code	mod1param	mod1min	mod1max	mod2code	mod2param	mod2min	mod2max	mod3code	mod3param	mod3min	mod3max	transform	transformcolor	itype1	itype2	itype3	itype4	itype5	itype6	itype7	etype1	etype2	etype3	etype4	etype5	divide	multiply	add
+of the Amazon	minimal seed; +N Amazon Bow & Crossbow skill tab (+1 tier)	100	1	0	1	29	1				1	300	skilltab	0	1	1											abow														
+of the Amazon	minimal seed; +N Amazon Bow & Crossbow skill tab (+2 tier)	100	1	0	30	59	22				1	300	skilltab	0	2	2											abow														
+of the Amazon	minimal seed; +N Amazon Bow & Crossbow skill tab (+3 tier)	100	1	0	60	99	45				1	300	skilltab	0	3	3											abow														
+of the Amazon	minimal seed; +N Javelin & Spear skill tab (+1 tier)	100	1	0	1	29	1				1	302	skilltab	2	1	1											aspe	ajav													
+of the Amazon	minimal seed; +N Javelin & Spear skill tab (+2 tier)	100	1	0	30	59	22				1	302	skilltab	2	2	2											aspe	ajav													
+of the Amazon	minimal seed; +N Javelin & Spear skill tab (+3 tier)	100	1	0	60	99	45				1	302	skilltab	2	3	3											aspe	ajav													
+of Fire	minimal seed; sorc orb +N Fire skills (+1 tier)	100	1	0	1	29	1				1	303	skilltab	3	1	1											orb														
+of Fire	minimal seed; sorc orb +N Fire skills (+2 tier)	100	1	0	30	59	22				1	303	skilltab	3	2	2											orb														
+of Fire	minimal seed; sorc orb +N Fire skills (+3 tier)	100	1	0	60	99	45				1	303	skilltab	3	3	3											orb														
+of Cold	minimal seed; sorc orb +N Cold skills (+1 tier)	100	1	0	1	29	1				1	303	skilltab	5	1	1											orb														
+of Cold	minimal seed; sorc orb +N Cold skills (+2 tier)	100	1	0	30	59	22				1	303	skilltab	5	2	2											orb														
+of Cold	minimal seed; sorc orb +N Cold skills (+3 tier)	100	1	0	60	99	45				1	303	skilltab	5	3	3											orb														
+of Lightning	minimal seed; sorc orb +N Lightning skills (+1 tier)	100	1	0	1	29	1				1	303	skilltab	4	1	1											orb														
+of Lightning	minimal seed; sorc orb +N Lightning skills (+2 tier)	100	1	0	30	59	22				1	303	skilltab	4	2	2											orb														
+of Lightning	minimal seed; sorc orb +N Lightning skills (+3 tier)	100	1	0	60	99	45				1	303	skilltab	4	3	3											orb														
+of Combat	minimal seed; pala shield +N Combat skills (+1 tier)	100	1	0	1	29	1				1	304	skilltab	9	1	1											ashd														
+of Combat	minimal seed; pala shield +N Combat skills (+2 tier)	100	1	0	30	59	22				1	304	skilltab	9	2	2											ashd														
+of Combat	minimal seed; pala shield +N Combat skills (+3 tier)	100	1	0	60	99	45				1	304	skilltab	9	3	3											ashd														
+of Offensive Auras	minimal seed; pala shield +N Offensive Auras (+1 tier)	100	1	0	1	29	1				1	304	skilltab	10	1	1											ashd														
+of Offensive Auras	minimal seed; pala shield +N Offensive Auras (+2 tier)	100	1	0	30	59	22				1	304	skilltab	10	2	2											ashd														
+of Offensive Auras	minimal seed; pala shield +N Offensive Auras (+3 tier)	100	1	0	60	99	45				1	304	skilltab	10	3	3											ashd														
+of Defensive Auras	minimal seed; pala shield +N Defensive Auras (+1 tier)	100	1	0	1	29	1				1	304	skilltab	11	1	1											ashd														
+of Defensive Auras	minimal seed; pala shield +N Defensive Auras (+2 tier)	100	1	0	30	59	22				1	304	skilltab	11	2	2											ashd														
+of Defensive Auras	minimal seed; pala shield +N Defensive Auras (+3 tier)	100	1	0	60	99	45				1	304	skilltab	11	3	3											ashd														
+of Curses	minimal seed; necro head +N Curses tab (+1 tier)	100	1	0	1	29	1				1	305	skilltab	6	1	1											head														
+of Curses	minimal seed; necro head +N Curses tab (+2 tier)	100	1	0	30	59	22				1	305	skilltab	6	2	2											head														
+of Curses	minimal seed; necro head +N Curses tab (+3 tier)	100	1	0	60	99	45				1	305	skilltab	6	3	3											head														
+of the Bone	minimal seed; necro head +N Poison & Bone tab (+1 tier)	100	1	0	1	29	1				1	305	skilltab	7	1	1											head														
+of the Bone	minimal seed; necro head +N Poison & Bone tab (+2 tier)	100	1	0	30	59	22				1	305	skilltab	7	2	2											head														
+of the Bone	minimal seed; necro head +N Poison & Bone tab (+3 tier)	100	1	0	60	99	45				1	305	skilltab	7	3	3											head														
+of Summoning	minimal seed; necro head +N Summoning tab (+1 tier)	100	1	0	1	29	1				1	305	skilltab	8	1	1											head														
+of Summoning	minimal seed; necro head +N Summoning tab (+2 tier)	100	1	0	30	59	22				1	305	skilltab	8	2	2											head														
+of Summoning	minimal seed; necro head +N Summoning tab (+3 tier)	100	1	0	60	99	45				1	305	skilltab	8	3	3											head														
+Sharp	minimal seed; +AR staffmod (group 308)	100	1	0	1	99	1				1	308	att	0	10	20											weap														
+Sharp	minimal seed; +AR staffmod (group 309)	100	1	0	1	99	1				1	309	att	0	10	20											knif														
+Sharp	minimal seed; +AR staffmod (group 327)	100	1	0	1	99	1				1	327	att	0	10	20											tkni														
+of Sorcery	minimal seed; +1 Sorceress skills staff staffmod (group 312)	100	1	0	1	99	1				1	312	sor		1	1											staf														
+of Wizardry	minimal seed; +2 Sorceress skills staff staffmod (group 313)	100	1	0	22	99	22				1	313	sor		2	2											staf														
+of the Magus	minimal seed; +3 Sorceress skills staff staffmod (group 314)	100	1	0	45	99	45				1	314	sor		3	3											staf														
+of Bone Spear	minimal seed; +1 Bone Spear (oskill, group 315)	100	1	0	1	99	1				1	315	oskill	Bone Spear	1	1											shie														
+of Bone Spirit	minimal seed; +1 Bone Spirit (oskill, group 316)	100	1	0	1	99	1				1	316	oskill	Bone Spirit	1	1											shie														
+of Teeth	minimal seed; +1 Teeth (oskill, group 317)	100	1	0	1	99	1				1	317	oskill	Teeth	1	1											shie														
+of Bone Wall	minimal seed; +1 Bone Wall (oskill, group 318)	100	1	0	1	99	1				1	318	oskill	Bone Wall	1	1											shie														
+of Bone Armor	minimal seed; +1 Bone Armor (oskill, group 319)	100	1	0	1	99	1				1	319	oskill	Bone Armor	1	1											shie														
+of Bone Prison	minimal seed; +1 Bone Prison (oskill, group 320)	100	1	0	1	99	1				1	320	oskill	Bone Prison	1	1											shie														

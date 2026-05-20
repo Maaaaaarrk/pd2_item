@@ -115,6 +115,7 @@ const files = [
   { name: 'RareSuffix', var: 'RARE_SUFFIX_DATA' },
   { name: 'WeaponClass', var: 'WEAPON_CLASS_DATA' },
   { name: 'Properties', var: 'PROPERTIES_DATA' },
+  { name: 'Automagic', var: 'AUTOMAGIC_DATA' },
 ];
 
 for (const f of files) {

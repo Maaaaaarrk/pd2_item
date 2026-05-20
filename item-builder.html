@@ -62,6 +62,7 @@
   .item-preview .affix-stats div { margin: 2px 0; }
   .item-preview .affix-stats .prefix-stat { color: #6495ed; }
   .item-preview .affix-stats .suffix-stat { color: #6495ed; }
+  .item-preview .affix-stats .auto-stat { color: #6495ed; }
   .item-preview .req { color: #555040; font-size: 0.85rem; margin-top: 8px; }
   .item-preview .separator { border-top: 1px solid #2a2418; margin: 8px 0; }
   .no-item { color: #3a3228; font-style: italic; margin-top: 60px; }
@@ -139,6 +140,7 @@
 <script src="data/js/RarePrefix.js"></script>
 <script src="data/js/RareSuffix.js"></script>
 <script src="data/js/Properties.js"></script>
+<script src="data/js/Automagic.js"></script>
 </head>
 <body>
 <h1>PD2 Theoretical Item Builder</h1>
@@ -245,6 +247,7 @@ let weaponData = WEAPONS_DATA;
 let itemTypes = ITEM_TYPES_DATA;
 let prefixes = MAGIC_PREFIX_DATA.filter(a => a.Name && a.spawnable !== '0');
 let suffixes = MAGIC_SUFFIX_DATA.filter(a => a.Name && a.spawnable !== '0');
+let automagic = (typeof AUTOMAGIC_DATA !== 'undefined' ? AUTOMAGIC_DATA : []).filter(a => a.Name && a.spawnable !== '0');
 let typeMap = {};
 for (const t of itemTypes) { if (t.Code) typeMap[t.Code] = t; }
 let rarePrefixes = RARE_PREFIX_DATA.filter(a => a.name);
@@ -390,6 +393,23 @@ function getValidAffixes(affixList, item, quality) {
 // --- Filter a valid affix list by alvl eligibility ---
 function filterByAlvl(affixList, alvl) {
   return affixList.filter(a => affixEligibleAtAlvl(a, alvl));
+}
+
+// --- Pick the auto-prefix (staffmod) entry for an item base, if any.
+// Item's `auto prefix` field is a group ID into AUTOMAGIC_DATA. We pick the
+// first matching entry whose group equals the item's auto-prefix AND whose
+// itype matches the item — deterministic placeholder for render only. ---
+function getAutoPrefixForItem(item) {
+  if (!item || !automagic || !automagic.length) return null;
+  const ap = item['auto prefix'];
+  if (!ap || ap === '0' || ap === '') return null;
+  const { fullChain, direct } = getItemTypeSets(item);
+  for (const a of automagic) {
+    if (a.group !== ap) continue;
+    if (!affixMatchesItem(a, fullChain, direct)) continue;
+    return a;
+  }
+  return null;
 }
 
 // --- Effective frequency: when item has magic lvl > 0, multiply freq by affix level ---
@@ -1833,6 +1853,13 @@ function renderPreview() {
 
   // Affix mods
   const allMods = [];
+  const autoEntry = getAutoPrefixForItem(item);
+  if (autoEntry) {
+    for (let i = 1; i <= 3; i++) {
+      const code = autoEntry['mod' + i + 'code'];
+      if (code) allMods.push({ code, param: autoEntry['mod' + i + 'param'], min: autoEntry['mod' + i + 'min'], max: autoEntry['mod' + i + 'max'], type: 'auto' });
+    }
+  }
   for (const a of selPre) {
     for (let i = 1; i <= 3; i++) {
       const code = a['mod' + i + 'code'];
