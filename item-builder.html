@@ -64,6 +64,16 @@
   .item-preview .affix-stats .suffix-stat { color: #6495ed; }
   .item-preview .affix-stats .auto-stat { color: #6495ed; }
   .item-preview .affix-stats .auto-stat-odds { color: #8a7e5a; font-size: 0.75rem; font-style: italic; margin: -1px 0 4px 0; }
+  .staffmod-section { margin-top: 8px; text-align: left; display: inline-block; width: 100%; }
+  .staffmod-section h4 { color: #d4b44a; font-size: 0.85rem; margin: 0 0 4px 0; font-family: 'Exocet', serif; }
+  .staffmod-section .staffmod-dist { color: #8a7e5a; font-size: 0.75rem; margin: 2px 0; font-style: italic; }
+  .staffmod-section .staffmod-summary { color: #c0b377; font-size: 0.8rem; margin: 4px 0 6px 0; }
+  .staffmod-section table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 0.75rem; }
+  .staffmod-section th { color: #8a7e5a; text-align: left; font-weight: normal; padding: 1px 4px; border-bottom: 1px solid #2a2418; }
+  .staffmod-section td { color: #b9a378; padding: 1px 4px; }
+  .staffmod-section td:not(:first-child) { text-align: right; color: #c0b377; }
+  .staffmod-section .skill-name { color: #6495ed; }
+  .staffmod-section .skill-tier-hint { color: #6b5c3e; }
   .item-preview .req { color: #555040; font-size: 0.85rem; margin-top: 8px; }
   .item-preview .separator { border-top: 1px solid #2a2418; margin: 8px 0; }
   .no-item { color: #3a3228; font-style: italic; margin-top: 60px; }
@@ -142,6 +152,7 @@
 <script src="data/js/RareSuffix.js"></script>
 <script src="data/js/Properties.js"></script>
 <script src="data/js/Automagic.js"></script>
+<script src="data/js/StaffmodSkills.js"></script>
 </head>
 <body>
 <h1>PD2 Theoretical Item Builder</h1>
@@ -434,6 +445,94 @@ function getAutoPrefixForItem(item, ilvl) {
     return a;
   }
   return null;
+}
+
+// --- Class-skill staffmod simulator. Separate system from AutoMagic.txt:
+// items with `StaffMods=<class>` in ItemTypes.txt roll +N to specific class
+// skills via a hardcoded game algorithm. Reference:
+// https://www.mannm.org/d2library/faqtoids/staffmods_eng.html ---
+const STAFFMOD_QTY_PROB = [0.31, 0.40, 0.20, 0.10]; // P(qty=N) for N=0..3 from Z roll
+const STAFFMOD_TIER_PROB = [0, 0.60, 0.30, 0.10];   // P(tier=T) for T=1..3 from Z3 roll
+const STAFFMOD_Z2 = [
+  { mod: -2, p: 0.11 },
+  { mod: -1, p: 0.20 },
+  { mod:  0, p: 0.50 },
+  { mod: +1, p: 0.19 }
+];
+const STAFFMOD_CLASS_NAMES = {
+  ama: 'Amazon', ass: 'Assassin', bar: 'Barbarian',
+  dru: 'Druid', nec: 'Necromancer', pal: 'Paladin', sor: 'Sorceress'
+};
+
+function staffmodB(ilvl) {
+  if (ilvl <= 11) return 1;
+  if (ilvl <= 18) return 2;
+  if (ilvl <= 24) return 3;
+  if (ilvl <= 36) return 4;
+  return 5;
+}
+
+function staffmodTierDist(B) {
+  const dist = {};
+  for (const z of STAFFMOD_Z2) {
+    const t = Math.max(1, Math.min(6, B + z.mod));
+    dist[t] = (dist[t] || 0) + z.p;
+  }
+  return dist;
+}
+
+function getItemStaffmodClass(item) {
+  if (!item || !typeMap) return null;
+  const { fullChain } = getItemTypeSets(item);
+  for (const t of fullChain) {
+    const entry = typeMap[t];
+    if (entry && entry.StaffMods) return entry.StaffMods.toLowerCase();
+  }
+  return null;
+}
+
+// P(skill appears on item at all) given P(this skill picked per attempt).
+// Approximation: ignores the duplicate-retry logic; error is small for
+// the per-skill probabilities we're dealing with.
+function staffmodPoolP(perAttempt) {
+  let p = 0;
+  for (let n = 1; n <= 3; n++) {
+    p += STAFFMOD_QTY_PROB[n] * (1 - Math.pow(1 - perAttempt, n));
+  }
+  return p;
+}
+
+function getStaffmodOdds(item, ilvl) {
+  const cls = getItemStaffmodClass(item);
+  if (!cls) return null;
+  const pool = (typeof STAFFMOD_SKILLS !== 'undefined') ? STAFFMOD_SKILLS[cls] : null;
+  if (!pool) return null;
+  const B = staffmodB(ilvl);
+  const tierDist = staffmodTierDist(B);
+
+  const skills = pool.skills.map(s => {
+    const tier = Math.floor((s.id - pool.base) / 5) + 1;
+    const pTierSel = tierDist[tier] || 0;
+    const pPick = pTierSel / 5;
+    return {
+      id: s.id, name: s.name, tier,
+      pPick,
+      anyP: staffmodPoolP(pPick),
+      p1: staffmodPoolP(pPick * STAFFMOD_TIER_PROB[1]),
+      p2: staffmodPoolP(pPick * STAFFMOD_TIER_PROB[2]),
+      p3: staffmodPoolP(pPick * STAFFMOD_TIER_PROB[3])
+    };
+  });
+
+  return {
+    cls,
+    className: STAFFMOD_CLASS_NAMES[cls] || cls,
+    B, tierDist, skills,
+    qtyProb: STAFFMOD_QTY_PROB,
+    tierProb: STAFFMOD_TIER_PROB,
+    anyP3: staffmodPoolP(STAFFMOD_TIER_PROB[3]),
+    anyP2plus: staffmodPoolP(STAFFMOD_TIER_PROB[2] + STAFFMOD_TIER_PROB[3])
+  };
 }
 
 // --- Odds for the displayed staffmod entry at the current ilvl ---
@@ -1974,6 +2073,57 @@ function renderPreview() {
         }
       }
     }
+    html += '</div>';
+  }
+
+  // Class-skill staffmod section (separate from AutoMagic.txt staffmods)
+  const staffOdds = getStaffmodOdds(item, state.ilvl);
+  if (staffOdds) {
+    html += '<div class="separator"></div>';
+    html += '<div class="staffmod-section">';
+    html += '<h4>' + staffOdds.className + ' skill staffmods &middot; ilvl ' + state.ilvl + '</h4>';
+
+    const qP = staffOdds.qtyProb, tP = staffOdds.tierProb;
+    html += '<div class="staffmod-dist">';
+    html += 'Quantity per item: ' +
+      (qP[0]*100).toFixed(0) + '% none &middot; ' +
+      (qP[1]*100).toFixed(0) + '% 1 skill &middot; ' +
+      (qP[2]*100).toFixed(0) + '% 2 skills &middot; ' +
+      (qP[3]*100).toFixed(0) + '% 3 skills';
+    html += ' &nbsp;|&nbsp; Tier per skill: ' +
+      (tP[1]*100).toFixed(0) + '% +1 &middot; ' +
+      (tP[2]*100).toFixed(0) + '% +2 &middot; ' +
+      (tP[3]*100).toFixed(0) + '% +3';
+    html += '</div>';
+
+    const reachable = Object.keys(staffOdds.tierDist).map(Number).sort((a,b) => a - b);
+    html += '<div class="staffmod-dist">Reachable skill tiers at ilvl ' + state.ilvl + ' (B=' + staffOdds.B + '): ' +
+      reachable.map(t => 'tier ' + t + ' (' + (staffOdds.tierDist[t]*100).toFixed(1) + '%)').join(' &middot; ') +
+      '</div>';
+
+    html += '<div class="staffmod-summary">';
+    html += 'Any +3 skill: <strong>' + (staffOdds.anyP3*100).toFixed(2) + '%</strong>';
+    html += ' &middot; Any +2 or +3: <strong>' + (staffOdds.anyP2plus*100).toFixed(2) + '%</strong>';
+    html += '</div>';
+
+    const reachableSkills = staffOdds.skills.filter(s => s.anyP > 0.0001);
+    reachableSkills.sort((a, b) => b.p3 - a.p3 || b.tier - a.tier);
+
+    if (reachableSkills.length > 0) {
+      html += '<table>';
+      html += '<tr><th>Skill (tier)</th><th>+3</th><th>+2</th><th>+1</th><th>any</th></tr>';
+      for (const s of reachableSkills) {
+        html += '<tr>';
+        html += '<td><span class="skill-name">' + esc(s.name) + '</span> <span class="skill-tier-hint">(tier ' + s.tier + ')</span></td>';
+        html += '<td>' + (s.p3*100).toFixed(2) + '%</td>';
+        html += '<td>' + (s.p2*100).toFixed(2) + '%</td>';
+        html += '<td>' + (s.p1*100).toFixed(2) + '%</td>';
+        html += '<td>' + (s.anyP*100).toFixed(1) + '%</td>';
+        html += '</tr>';
+      }
+      html += '</table>';
+    }
+
     html += '</div>';
   }
 
