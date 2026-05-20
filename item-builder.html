@@ -412,15 +412,15 @@ function getAutoPrefixPoolForItem(item, ilvl) {
   });
 }
 
-// --- Pick a single auto-prefix entry to render. Prefer the highest-tier
-// eligible entry at the given ilvl; fall back to first group match otherwise. ---
+// --- Pick a single auto-prefix entry to render. Prefer the entry with the
+// highest level bracket eligible at the given ilvl; tiebreak on array order. ---
 function getAutoPrefixForItem(item, ilvl) {
   if (ilvl !== undefined) {
     const pool = getAutoPrefixPoolForItem(item, ilvl);
     if (!pool.length) return null;
     return pool.reduce((best, a) => {
-      const bv = parseInt(best.mod1min) || 0;
-      const av = parseInt(a.mod1min) || 0;
+      const bv = parseInt(best.level) || 0;
+      const av = parseInt(a.level) || 0;
       return av > bv ? a : best;
     });
   }
@@ -445,43 +445,41 @@ function getAutoPrefixOdds(item, ilvl, displayedEntry) {
   const totalFreq = pool.reduce((s, a) => s + freqOf(a), 0);
   if (totalFreq <= 0) return null;
 
-  const sameSkill = pool.filter(a =>
+  // Same-kind = entries sharing the displayed primary mod (code + param).
+  // For real PD2 AutoMagic this groups e.g. all HP-tier orb staffmods together,
+  // or all res-all paladin-shield staffmods together — separate from att/dmg%.
+  const sameKind = pool.filter(a =>
     a.mod1code === displayedEntry.mod1code &&
-    a.mod1param === displayedEntry.mod1param
+    (a.mod1param || '') === (displayedEntry.mod1param || '')
   );
-  const sameSkillFreq = sameSkill.reduce((s, a) => s + freqOf(a), 0);
+  const sameKindFreq = sameKind.reduce((s, a) => s + freqOf(a), 0);
+  const displayedFreq = freqOf(displayedEntry);
 
-  let maxTierEntry = displayedEntry;
-  let maxTierVal = parseInt(displayedEntry.mod1min) || 0;
-  for (const a of sameSkill) {
-    const v = parseInt(a.mod1min) || 0;
-    if (v > maxTierVal) { maxTierVal = v; maxTierEntry = a; }
-  }
-  const maxTierFreq = freqOf(maxTierEntry);
-
+  // Skill-tab specific: detect when a +3 tier exists in the unfiltered group
+  // but isn't eligible at this ilvl.
   let plus3Ineligible = false;
-  if (maxTierVal < 3) {
+  const displayedTier = parseInt(displayedEntry.mod1min) || 0;
+  const isSkillTab = displayedEntry.mod1code === 'skilltab';
+  if (isSkillTab && displayedTier < 3) {
     const { fullChain, direct } = getItemTypeSets(item);
     const ap = item['auto prefix'];
-    const has3 = automagic.some(a =>
+    plus3Ineligible = automagic.some(a =>
       a.group === ap &&
       affixMatchesItem(a, fullChain, direct) &&
       a.mod1code === displayedEntry.mod1code &&
       a.mod1param === displayedEntry.mod1param &&
       (parseInt(a.mod1min) || 0) === 3
     );
-    plus3Ineligible = has3;
   }
 
-  const tiered = sameSkill.some(a => (parseInt(a.mod1min) || 0) !== maxTierVal) || plus3Ineligible;
-
   return {
-    skillProb: sameSkillFreq / totalFreq,
-    maxTierProb: maxTierFreq / totalFreq,
-    maxTierVal,
-    tiered,
-    plus3Ineligible,
-    poolSize: pool.length
+    exactProb: displayedFreq / totalFreq,
+    kindProb: sameKindFreq / totalFreq,
+    kindEntries: sameKind.length,
+    poolSize: pool.length,
+    isSkillTab,
+    displayedTier,
+    plus3Ineligible
   };
 }
 
@@ -1958,19 +1956,19 @@ function renderPreview() {
       if (m.type === 'auto' && (!next || next.type !== 'auto') && autoEntry) {
         const odds = getAutoPrefixOdds(item, state.ilvl, autoEntry);
         if (odds) {
-          const skillPct = (odds.skillProb * 100).toFixed(1);
-          const minVal = parseInt(autoEntry.mod1min) || 0;
-          const maxVal = parseInt(autoEntry.mod1max) || 0;
-          const isVariableRoll = minVal !== maxVal;
+          const exactPct = (odds.exactProb * 100).toFixed(1);
+          const kindPct = (odds.kindProb * 100).toFixed(1);
           let oddsLine;
-          if (isVariableRoll || minVal <= 0) {
-            oddsLine = skillPct + '% chance for this entry';
-          } else if (odds.plus3Ineligible) {
-            oddsLine = skillPct + '% for this skill at +' + minVal + ' &middot; +3 tier needs higher ilvl';
-          } else if (minVal === 3) {
-            oddsLine = skillPct + '% chance for +3 of this skill';
+          if (odds.poolSize === 1) {
+            oddsLine = '100% &mdash; only eligible staffmod for this base at ilvl ' + state.ilvl;
+          } else if (odds.kindEntries === 1) {
+            oddsLine = exactPct + '% chance to roll this staffmod';
+          } else if (odds.isSkillTab && odds.plus3Ineligible) {
+            oddsLine = exactPct + '% for this tier &middot; ' + kindPct + '% for any tier of this skill tab &middot; +3 needs higher ilvl';
+          } else if (odds.isSkillTab && odds.displayedTier === 3) {
+            oddsLine = exactPct + '% for +3 of this skill tab &middot; ' + kindPct + '% for any tier of this skill tab';
           } else {
-            oddsLine = skillPct + '% chance for this skill at +' + minVal;
+            oddsLine = exactPct + '% for this tier &middot; ' + kindPct + '% for any tier of this mod kind';
           }
           html += '<div class="auto-stat-odds">' + oddsLine + '</div>';
         }
