@@ -74,6 +74,13 @@
   .staffmod-section td:not(:first-child) { text-align: right; color: #c0b377; }
   .staffmod-section .skill-name { color: #6495ed; }
   .staffmod-section .skill-tier-hint { color: #6b5c3e; }
+  .staffmod-section .pick-col { width: 1%; text-align: center !important; padding-right: 6px !important; }
+  .staffmod-section .pick-col input { cursor: pointer; vertical-align: middle; }
+  .staffmod-section .pick-col input:disabled { cursor: not-allowed; opacity: 0.4; }
+  .staffmod-section tr.selected { background: #1a160d; }
+  .staffmod-section .combined-odds { color: #d4b44a; font-size: 0.8rem; margin: 6px 0 2px 0; }
+  .staffmod-section .combined-odds strong { color: #ffff77; }
+  .staffmod-section .combined-hint { color: #6b5c3e; font-size: 0.72rem; font-style: italic; margin: 2px 0 4px 0; }
   .item-preview .req { color: #555040; font-size: 0.85rem; margin-top: 8px; }
   .item-preview .separator { border-top: 1px solid #2a2418; margin: 8px 0; }
   .no-item { color: #3a3228; font-style: italic; margin-top: 60px; }
@@ -277,7 +284,8 @@ const miscItems = [
   { name: 'Grand Charm', code: 'cm3', type: 'lcha', level: '1', levelreq: '0', category: 'charm' },
 ];
 
-let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, ilvl: 99, selectedPrefixes: [], selectedSuffixes: [], rareName: '', affixMode: 'exact', fuzzyMin: 1, fuzzyAffixes: [], fuzzySections: [{ affixes: [], min: 1 }] };
+let state = { category: '', tier: '', itemClass: '', baseIndex: -1, quality: '', ethereal: false, ilvl: 99, selectedPrefixes: [], selectedSuffixes: [], rareName: '', affixMode: 'exact', fuzzyMin: 1, fuzzyAffixes: [], fuzzySections: [{ affixes: [], min: 1 }], staffmodSelected: [] };
+const STAFFMOD_MAX_SELECT = 3;
 
 // --- Tier detection: Normal / Exceptional / Elite ---
 function getItemTier(item) {
@@ -500,6 +508,57 @@ function staffmodPoolP(perAttempt) {
     p += STAFFMOD_QTY_PROB[n] * (1 - Math.pow(1 - perAttempt, n));
   }
   return p;
+}
+
+// P(all K selected outcomes appear among the n iid attempts), summed over the
+// qty distribution. perAttempts: array of P(this attempt produces outcome i),
+// one per selected skill — for "any tier" pass pPick, for "+3 specifically"
+// pass pPick * tierProb[3], etc. Uses inclusion-exclusion under the same
+// iid-with-replacement approximation as staffmodPoolP.
+function staffmodAllAppearP(perAttempts) {
+  const K = perAttempts.length;
+  if (K === 0) return 0;
+  let total = 0;
+  for (let n = K; n <= 3; n++) {
+    let inEx = 0;
+    for (let mask = 0; mask < (1 << K); mask++) {
+      let bits = 0, sumP = 0;
+      for (let i = 0; i < K; i++) {
+        if (mask & (1 << i)) { bits++; sumP += perAttempts[i]; }
+      }
+      const sign = (bits & 1) ? -1 : 1;
+      inEx += sign * Math.pow(Math.max(0, 1 - sumP), n);
+    }
+    total += STAFFMOD_QTY_PROB[n] * inEx;
+  }
+  return Math.max(0, total);
+}
+
+// Format a probability as a percent string, keeping ~3 significant figures.
+// 0.5         -> "50.0%"
+// 0.0152      -> "1.52%"
+// 0.0000384   -> "0.00384%"
+// 1e-9        -> "1.00e-7%"
+function fmtPct(p) {
+  if (!isFinite(p) || p <= 0) return '0%';
+  const pct = p * 100;
+  if (pct >= 10) return pct.toFixed(2) + '%';
+  if (pct >= 1) return pct.toFixed(3) + '%';
+  const decimals = Math.min(9, 2 - Math.floor(Math.log10(pct)));
+  if (decimals > 8) return pct.toExponential(2) + '%';
+  return pct.toFixed(decimals) + '%';
+}
+
+function toggleStaffmodSkill(id) {
+  const sel = state.staffmodSelected || (state.staffmodSelected = []);
+  const idx = sel.indexOf(id);
+  if (idx >= 0) {
+    sel.splice(idx, 1);
+  } else {
+    if (sel.length >= STAFFMOD_MAX_SELECT) return;
+    sel.push(id);
+  }
+  renderPreview();
 }
 
 function getStaffmodOdds(item, ilvl) {
@@ -933,6 +992,7 @@ document.getElementById('base').addEventListener('change', function() {
   document.getElementById('eth-check').checked = false;
   state.selectedPrefixes = [];
   state.selectedSuffixes = [];
+  state.staffmodSelected = [];
   const valid = !isNaN(state.baseIndex) && state.baseIndex >= 0;
   const charmOnly = state.category === 'charm';
   const noCraft = state.category === 'charm' || state.category === 'jewel';
@@ -2106,14 +2166,49 @@ function renderPreview() {
     html += ' &middot; Any +2 or +3: <strong>' + (staffOdds.anyP2plus*100).toFixed(2) + '%</strong>';
     html += '</div>';
 
-    const reachableSkills = staffOdds.skills.filter(s => s.anyP > 0.0001);
-    reachableSkills.sort((a, b) => b.p3 - a.p3 || b.tier - a.tier);
+    const selectedIds = new Set((state.staffmodSelected || []).filter(id =>
+      staffOdds.skills.some(s => s.id === id)
+    ));
+    const visibleSkills = staffOdds.skills.filter(s => s.anyP > 0.0001 || selectedIds.has(s.id));
+    visibleSkills.sort((a, b) => b.p3 - a.p3 || b.tier - a.tier);
 
-    if (reachableSkills.length > 0) {
+    const selectedSkills = staffOdds.skills.filter(s => selectedIds.has(s.id));
+    if (selectedSkills.length > 0) {
+      const pAny    = selectedSkills.map(s => s.pPick);
+      const pP3     = selectedSkills.map(s => s.pPick * STAFFMOD_TIER_PROB[3]);
+      const pP2plus = selectedSkills.map(s => s.pPick * (STAFFMOD_TIER_PROB[2] + STAFFMOD_TIER_PROB[3]));
+      const allAny    = staffmodAllAppearP(pAny);
+      const allP3     = staffmodAllAppearP(pP3);
+      const allP2plus = staffmodAllAppearP(pP2plus);
+      const K = selectedSkills.length;
+      const label = K === 1
+        ? 'Selected skill (' + esc(selectedSkills[0].name) + ')'
+        : 'All ' + K + ' selected skills';
+      html += '<div class="combined-odds">' + label + ' on one item: ' +
+        '<strong>' + fmtPct(allAny) + '</strong> any tier &middot; ' +
+        '<strong>' + fmtPct(allP2plus) + '</strong> all +2 or +3 &middot; ' +
+        '<strong>' + fmtPct(allP3) + '</strong> all +3' +
+        '</div>';
+      if (K > 1) {
+        const oneIn = allAny > 0 ? Math.round(1 / allAny) : 0;
+        html += '<div class="combined-hint">~ 1 in ' + oneIn.toLocaleString() + ' rolls to get all ' + K + ' on the same item (any tier).</div>';
+      }
+    } else {
+      html += '<div class="combined-hint">Tick up to ' + STAFFMOD_MAX_SELECT + ' skills below to see combined odds.</div>';
+    }
+
+    if (visibleSkills.length > 0) {
+      const atCap = selectedIds.size >= STAFFMOD_MAX_SELECT;
       html += '<table>';
-      html += '<tr><th>Skill (tier)</th><th>+3</th><th>+2</th><th>+1</th><th>any</th></tr>';
-      for (const s of reachableSkills) {
-        html += '<tr>';
+      html += '<tr><th class="pick-col"></th><th>Skill (tier)</th><th>+3</th><th>+2</th><th>+1</th><th>any</th></tr>';
+      for (const s of visibleSkills) {
+        const isSel = selectedIds.has(s.id);
+        const disabled = !isSel && atCap;
+        html += '<tr' + (isSel ? ' class="selected"' : '') + '>';
+        html += '<td class="pick-col"><input type="checkbox"' +
+          (isSel ? ' checked' : '') +
+          (disabled ? ' disabled' : '') +
+          ' onchange="toggleStaffmodSkill(' + s.id + ')" /></td>';
         html += '<td><span class="skill-name">' + esc(s.name) + '</span> <span class="skill-tier-hint">(tier ' + s.tier + ')</span></td>';
         html += '<td>' + (s.p3*100).toFixed(2) + '%</td>';
         html += '<td>' + (s.p2*100).toFixed(2) + '%</td>';
@@ -2816,6 +2911,11 @@ function stateToHash() {
     }
   }
 
+  // Selected class-skill staffmods (max 3)
+  if (state.staffmodSelected && state.staffmodSelected.length) {
+    parts.push('sm=' + state.staffmodSelected.slice(0, STAFFMOD_MAX_SELECT).join('.'));
+  }
+
   // Rare name
   if ((state.quality === 'rare' || state.quality === 'crafted') && state.rareName) {
     const nameParts = state.rareName.split(' ');
@@ -3006,6 +3106,18 @@ function loadFromHash() {
       }
       refreshAffixSlots('suffix');
     }
+  }
+
+  // Restore selected class-skill staffmods (intersect with the current item's class pool)
+  if (params.sm) {
+    const items3 = getCategoryItems();
+    const item3 = items3[baseIndex];
+    const odds = getStaffmodOdds(item3, state.ilvl);
+    const poolIds = odds ? new Set(odds.skills.map(s => s.id)) : null;
+    const ids = params.sm.split('.').map(Number)
+      .filter(n => !isNaN(n) && (!poolIds || poolIds.has(n)))
+      .slice(0, STAFFMOD_MAX_SELECT);
+    state.staffmodSelected = ids;
   }
 
   renderPreview();
