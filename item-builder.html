@@ -534,21 +534,6 @@ function staffmodAllAppearP(perAttempts) {
   return Math.max(0, total);
 }
 
-// Format a probability as a percent string, keeping ~3 significant figures.
-// 0.5         -> "50.0%"
-// 0.0152      -> "1.52%"
-// 0.0000384   -> "0.00384%"
-// 1e-9        -> "1.00e-7%"
-function fmtPct(p) {
-  if (!isFinite(p) || p <= 0) return '0%';
-  const pct = p * 100;
-  if (pct >= 10) return pct.toFixed(2) + '%';
-  if (pct >= 1) return pct.toFixed(3) + '%';
-  const decimals = Math.min(9, 2 - Math.floor(Math.log10(pct)));
-  if (decimals > 8) return pct.toExponential(2) + '%';
-  return pct.toFixed(decimals) + '%';
-}
-
 function toggleStaffmodSkill(id) {
   const sel = state.staffmodSelected || (state.staffmodSelected = []);
   const idx = sel.indexOf(id);
@@ -2184,15 +2169,14 @@ function renderPreview() {
       const label = K === 1
         ? 'Selected skill (' + esc(selectedSkills[0].name) + ')'
         : 'All ' + K + ' selected skills';
+      const rAny    = allAny    > 0 ? Math.round(1 / allAny)    : 0;
+      const rP2plus = allP2plus > 0 ? Math.round(1 / allP2plus) : 0;
+      const rP3     = allP3     > 0 ? Math.round(1 / allP3)     : 0;
       html += '<div class="combined-odds">' + label + ' on one item: ' +
-        '<strong>' + fmtPct(allAny) + '</strong> any tier &middot; ' +
-        '<strong>' + fmtPct(allP2plus) + '</strong> all +2 or +3 &middot; ' +
-        '<strong>' + fmtPct(allP3) + '</strong> all +3' +
+        '<strong>' + oddsText(rAny) + '</strong> any tier &middot; ' +
+        '<strong>' + oddsText(rP2plus) + '</strong> all +2 or +3 &middot; ' +
+        '<strong>' + oddsText(rP3) + '</strong> all +3' +
         '</div>';
-      if (K > 1) {
-        const oneIn = allAny > 0 ? Math.round(1 / allAny) : 0;
-        html += '<div class="combined-hint">~ 1 in ' + oneIn.toLocaleString() + ' rolls to get all ' + K + ' on the same item (any tier).</div>';
-      }
     } else {
       html += '<div class="combined-hint">Tick up to ' + STAFFMOD_MAX_SELECT + ' skills below to see combined odds.</div>';
     }
@@ -2312,6 +2296,33 @@ function renderPreview() {
       html += '<div style="color:#a0a0b0; font-size:0.75rem; margin-top:2px;">Same odds for ilvl ' + ilvlRange.lo + '-' + ilvlRange.hi + '</div>';
     }
     html += '</div>';
+
+    // Combined odds × selected staffmods (if any)
+    if (staffOdds && combinedProb > 0) {
+      const selectedStaffSkills = staffOdds.skills.filter(s => (state.staffmodSelected || []).includes(s.id));
+      if (selectedStaffSkills.length > 0) {
+        const staffAllAny    = staffmodAllAppearP(selectedStaffSkills.map(s => s.pPick));
+        const staffAllP3     = staffmodAllAppearP(selectedStaffSkills.map(s => s.pPick * STAFFMOD_TIER_PROB[3]));
+        const staffAllP2plus = staffmodAllAppearP(selectedStaffSkills.map(s => s.pPick * (STAFFMOD_TIER_PROB[2] + STAFFMOD_TIER_PROB[3])));
+        const jointAny    = combinedProb * staffAllAny;
+        const jointP2plus = combinedProb * staffAllP2plus;
+        const jointP3     = combinedProb * staffAllP3;
+        const jAnyR    = jointAny    > 0 ? Math.round(1 / jointAny)    : 0;
+        const jP2plusR = jointP2plus > 0 ? Math.round(1 / jointP2plus) : 0;
+        const jP3R     = jointP3     > 0 ? Math.round(1 / jointP3)     : 0;
+        const skillLabel = selectedStaffSkills.length === 1
+          ? esc(selectedStaffSkills[0].name)
+          : selectedStaffSkills.length + ' selected skills';
+        html += '<div class="odds-combined">';
+        html += '<div class="label">Combined chance for affixes + ' + skillLabel + '</div>';
+        html += '<div class="value">' + oddsText(jAnyR) + '</div>';
+        html += '<div style="color:#a0a0b0; font-size:0.75rem; margin-top:2px;">' +
+          'all +2 or +3: ' + oddsText(jP2plusR) + ' &middot; ' +
+          'all +3: ' + oddsText(jP3R) +
+          '</div>';
+        html += '</div>';
+      }
+    }
 
     // LLD Smart Mode: check if all selected affixes + base item have levelreq <= 30
     const LLD_MAX_LEVEL = 30;
