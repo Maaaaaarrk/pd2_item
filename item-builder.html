@@ -206,7 +206,7 @@
     </div>
 
     <div id="ethereal-area" style="display:none; margin-top: 10px;">
-      <label class="eth-toggle"><input type="checkbox" id="eth-check" onchange="toggleEthereal()"> Ethereal (+25% base stats, 1 in 20)</label>
+      <label class="eth-toggle"><input type="checkbox" id="eth-check" onchange="toggleEthereal()"> Ethereal (+25% base stats<span id="eth-rate-note">, 1 in 20</span>)</label>
     </div>
 
     <div id="mode-area" style="display:none; margin-top: 10px;">
@@ -998,6 +998,12 @@ function toggleEthereal() {
   renderPreview();
 }
 
+// Crafted items inherit eth 1:1 from the base used, so there's no 1-in-20 roll
+function updateEthRateNote() {
+  const note = document.getElementById('eth-rate-note');
+  if (note) note.textContent = state.quality === 'crafted' ? ', 1:1 with base' : ', 1 in 20';
+}
+
 function setQuality(q) {
   state.quality = q;
   state.selectedPrefixes = [];
@@ -1008,6 +1014,7 @@ function setQuality(q) {
   document.getElementById('btn-magic').className = q === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = q === 'rare' ? 'active-rare' : '';
   document.getElementById('btn-crafted').className = q === 'crafted' ? 'active-crafted' : '';
+  updateEthRateNote();
   // Show ilvl input and mode toggle
   document.getElementById('ilvl-area').style.display = 'block';
   document.getElementById('mode-area').style.display = 'block';
@@ -2277,8 +2284,8 @@ function renderPreview() {
     // Combined odds using slot distribution model
     let combinedProb = computeCombinedProb(slotDist, preProbs, sufProbs);
 
-    // Ethereal odds
-    if (state.ethereal) {
+    // Ethereal odds — crafted items inherit eth 1:1 from the base used, so no 1/20 roll
+    if (state.ethereal && state.quality !== 'crafted') {
       combinedProb *= (1 / 20);
       html += '<div class="odds-row">';
       html += '<span class="odds-label">Ethereal</span>';
@@ -2658,7 +2665,7 @@ function findIlvlRange(item, validPre, validSuf, selPre, selSuf, quality, catego
     const sp = selSuf.map(a => { const f = getEffectiveFreq(a, item); return stf > 0 ? f / stf : 0; });
     const sd = getSlotDistribution(quality, category, ilvl);
     let prob = computeCombinedProb(sd, pp, sp);
-    if (isEthereal) prob *= (1 / 20);
+    if (isEthereal && quality !== 'crafted') prob *= (1 / 20);
     if (lldMax !== undefined) {
       const lldPreFreq = ePre.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + getEffectiveFreq(a, item), 0);
       const lldSufFreq = eSuf.filter(a => (parseInt(a.levelreq) || 0) <= lldMax).reduce((s, a) => s + getEffectiveFreq(a, item), 0);
@@ -2712,7 +2719,7 @@ function buildIlvlBreakdownExact(item, validPre, validSuf, selPre, selSuf, quali
     var sd = getSlotDistribution(quality, category, ilvl);
     var prob = computeCombinedProb(sd, pp, sp);
     if (prob <= 0) continue;
-    if (isEthereal) prob *= (1 / 20);
+    if (isEthereal && quality !== 'crafted') prob *= (1 / 20);
     if (lldMax !== undefined) {
       var lldPreFreq = ePre.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + getEffectiveFreq(a, item); }, 0);
       var lldSufFreq = eSuf.filter(function(a) { return (parseInt(a.levelreq) || 0) <= lldMax; }).reduce(function(s, a) { return s + getEffectiveFreq(a, item); }, 0);
@@ -3014,6 +3021,7 @@ function loadFromHash() {
   document.getElementById('btn-magic').className = quality === 'magic' ? 'active-magic' : '';
   document.getElementById('btn-rare').className = quality === 'rare' ? 'active-rare' : '';
   document.getElementById('btn-crafted').className = quality === 'crafted' ? 'active-crafted' : '';
+  updateEthRateNote();
 
   // Restore rare name before building slots
   if ((quality === 'rare' || quality === 'crafted') && params.rn) {
