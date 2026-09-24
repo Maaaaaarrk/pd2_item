@@ -1,4 +1,5 @@
 # PD2 Theoretical Item Builder
+> **Moved:** these tools now live at [https://hiimpd2.com](https://hiimpd2.com). The pages in this repo redirect to their hiimpd2.com equivalents.
 
 Build and share theoretical magic and rare items for Project Diablo 2.
 
